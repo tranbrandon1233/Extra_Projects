@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Drawing App</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+
+        #drawing-canvas {
+            width: 80%;
+            height: 80%;
+            border: 1px solid black;
+        }
+
+        #toolbar {
+            width: 20%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #f2f2f2;
+            padding: 10px;
+            border: 1px solid black;
+        }
+
+        .tool {
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+        }
+
+        #pen {
+            background-color: black;
+        }
+
+        #eraser {
+            background-color: white;
+        }
+
+        #color-picker {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .color {
+            width: 20px;
+            height: 20px;
+            border: 1px solid black;
+            margin: 5px;
+            cursor: pointer;
+        }
+
+        #red {
+            background-color: red;
+        }
+
+        #black {
+            background-color: black;
+        }
+
+        #blue {
+            background-color: blue;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="drawing-canvas"></canvas>
+    <div id="toolbar">
+        <div class="tool" id="pen"></div>
+        <div class="tool" id="eraser"></div>
+        <div id="color-picker">
+            <div class="color" id="red"></div>
+            <div class="color" id="black"></div>
+            <div class="color" id="blue"></div>
+        </div>
+    </div>
+
+    <script src="Drawing.js"></script>
+</body>
+
+</html>
