@@ -86,12 +86,31 @@ public class NoteOrganizerGUI {
             notePanel.setBackground(colors.get(entry.getKey()));
             JLabel categoryLabel = new JLabel(entry.getKey());
             JLabel noteLabel = new JLabel(entry.getValue());
+            JButton editButton = new JButton("Edit");
+            editButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    editNote(entry.getKey());
+                }
+            });
             notePanel.add(categoryLabel);
             notePanel.add(noteLabel);
+            notePanel.add(editButton);
             panel.add(notePanel);
         }
         frame.revalidate();
         frame.repaint();
+    }
+
+    private void editNote(String category) {
+        String newCategory = JOptionPane.showInputDialog("Enter new category: ");
+        String newNote = JOptionPane.showInputDialog("Enter new note: ");
+        Color newColor = JColorChooser.showDialog(frame, "Select new color", Color.WHITE);
+        notes.put(newCategory, newNote);
+        colors.put(newCategory, newColor);
+        notes.remove(category);
+        colors.remove(category);
+        updateUI();
     }
 
     public static void main(String[] args) {
