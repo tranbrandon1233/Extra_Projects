@@ -1,0 +1,14 @@
+/* Add this CSS to your stylesheets or inside a <style> tag */
+@keyframes rotateIcon {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+#loadingIcon {
+    animation: rotateIcon 2s linear infinite;
+}
