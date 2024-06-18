@@ -1,4 +1,3 @@
-// Add this JavaScript before the closing </body> tag or in a separate script file
 document.addEventListener('DOMContentLoaded', function() {
     const icons = ['icon1.jpg', 'icon2.png']; // Add your icons' filenames here
     let currentIconIndex = 0;
