@@ -1,0 +1,6 @@
+OriginalCode,OriginalFamilyId,categoryCode,categoryFamilyId,code_parent,parent_categories,Level,UpdateDate
+porte_interieure,porte_interieure.1,bricolage,bricolage,root,root,0,2024-04-05 12:15:02 UTC
+porte_interieure.2,porte_interieure.3,bois_et_menuiserie,bois_et_menuiserie.1,bricolage,bricolage,1,2024-04-05 12:15:02.019343 UTC
+porte_interieure.2,porte_interieure.3,bois_et_menuiserie,bois_et_menuiserie.1,bricolage,bricolage,1,2024-04-05 12:15:02.019343 UTC
+porte_interieure.4,porte_interieure.5,porte_et_bloc_porte,porte_et_bloc_porte.1,bois_et_menuiserie.2,bois_et_menuiserie;bricolage,2,2024-04-05 12:15:02.019343 UTC
+porte_interieure.6,porte_interieure.7,porte_interieure.8,porte_interieure.9,porte_et_bloc_porte.2,porte_et_bloc_porte;bois_et_menuiserie;bricolage,3,2024-04-05 12:15:02.019343 UTC
