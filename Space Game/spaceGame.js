@@ -1,154 +1,161 @@
 // Get the canvas element
-let canvas = document.getElementById('gameCanvas');
-let ctx = canvas.getContext('2d');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
 
-// Set canvas dimensions to match the window dimensions
+// Set the canvas dimensions
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Define the spaceship object
-let spaceship = {
-    x: canvas.width / 2,
-    y: canvas.height / 2,
-    speed: 2,
-    radius: 20
-};
+// Define the columns
+const columns = [
+  { x: canvas.width / 8, color: 'red', key: 'A', keyCode: 65, lastRectangleTime: 0, rectangleGap: false },
+  { x: canvas.width / 8 * 3, color: 'blue', key: 'S', keyCode: 83, lastRectangleTime: 0, rectangleGap: false },
+  { x: canvas.width / 8 * 5, color: 'green', key: 'D', keyCode: 68, lastRectangleTime: 0, rectangleGap: false },
+  { x: canvas.width / 8 * 7, color: 'yellow', key: 'F', keyCode: 70, lastRectangleTime: 0, rectangleGap: false }
+];
 
-// Define the asteroids array
-let asteroids = [];
+// Define the rectangles
+let rectangles = [];
 
-// Function to draw the game elements
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+// Define the points
+let points = 0;
 
-    // Draw spaceship
-    ctx.beginPath();
-    ctx.arc(spaceship.x, spaceship.y, spaceship.radius, 0, 2 * Math.PI);
-    ctx.fillStyle = 'blue';
-    ctx.fill();
+// Define the key pressed status
+const keyPressed = {};
 
-    // Draw asteroids
-    for (let i = 0; i < asteroids.length; i++) {
-        ctx.beginPath();
-        ctx.arc(asteroids[i].x, asteroids[i].y, asteroids[i].radius, 0, 2 * Math.PI);
-        ctx.fillStyle = 'green';
-        ctx.fill();
-    }
-
-// Update asteroids
-for (let i = 0; i < asteroids.length; i++) {
-    switch (asteroids[i].direction) {
-        case 'down':
-            asteroids[i].y += asteroids[i].speed;
-            if (asteroids[i].y > canvas.height) {
-                asteroids.splice(i, 1);
-                i--;
-            }
-            break;
-        case 'left':
-            asteroids[i].x -= asteroids[i].speed;
-            if (asteroids[i].x < 0) {
-                asteroids.splice(i, 1);
-                i--;
-            }
-            break;
-        case 'up':
-            asteroids[i].y -= asteroids[i].speed;
-            if (asteroids[i].y < 0) {
-                asteroids.splice(i, 1);
-                i--;
-            }
-            break;
-        case 'right':
-            asteroids[i].x += asteroids[i].speed;
-            if (asteroids[i].x > canvas.width) {
-                asteroids.splice(i, 1);
-                i--;
-            }
-            break;
-    }
-}
-
-    // Check collision with spaceship
-    for (let i = 0; i < asteroids.length; i++) {
-        if (Math.pow(asteroids[i].x - spaceship.x, 2) + Math.pow(asteroids[i].y - spaceship.y, 2) < Math.pow(asteroids[i].radius + spaceship.radius, 2)) {
-            alert('Game Over');
-            // Reset game state
-            resetGame();
-            return;
-        }
-    }
-
-    // Add new asteroids
-if (asteroids.length < 12) {
-    let numberOfAsteroidsToAdd = 12 - asteroids.length;
-    for (let i = 0; i < numberOfAsteroidsToAdd; i++) {
-        let direction = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
-        let asteroid;
-        switch (direction) {
-            case 0: // top
-                asteroid = {
-                    x: Math.random() * canvas.width,
-                    y: 0,
-                    speed: Math.random() * 2 + 1,
-                    radius: Math.random() * 20 + 10,
-                    direction: 'down'
-                };
-                break;
-            case 1: // right
-                asteroid = {
-                    x: canvas.width,
-                    y: Math.random() * canvas.height,
-                    speed: Math.random() * 2 + 1,
-                    radius: Math.random() * 20 + 10,
-                    direction: 'left'
-                };
-                break;
-            case 2: // bottom
-                asteroid = {
-                    x: Math.random() * canvas.width,
-                    y: canvas.height,
-                    speed: Math.random() * 2 + 1,
-                    radius: Math.random() * 20 + 10,
-                    direction: 'up'
-                };
-                break;
-            case 3: // left
-                asteroid = {
-                    x: 0,
-                    y: Math.random() * canvas.height,
-                    speed: Math.random() * 2 + 1,
-                    radius: Math.random() * 20 + 10,
-                    direction: 'right'
-                };
-                break;
-        }
-        asteroids.push(asteroid);
-    }
-}
-
-    requestAnimationFrame(draw);
-}
-
-// Function to reset the game state
-function resetGame() {
-    // Reset spaceship position
-    spaceship.x = canvas.width / 2;
-    spaceship.y = canvas.height / 2;
-
-    // Clear asteroids array
-    asteroids = [];
-
-    // Restart the game
-    draw();
-}
-
-// Add event listener for mouse movement
-canvas.addEventListener('mousemove', function(e) {
-    let rect = canvas.getBoundingClientRect();
-    spaceship.x = e.clientX - rect.left - spaceship.radius / 2;
-    spaceship.y = e.clientY - rect.top - spaceship.radius / 2;
+// Add event listeners for key press and release
+document.addEventListener('keydown', (e) => {
+  keyPressed[e.keyCode] = true;
 });
 
-// Start the game
-requestAnimationFrame(draw);
+document.addEventListener('keyup', (e) => {
+  keyPressed[e.keyCode] = false;
+});
+
+// Add event listener for window resize
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+// Function to generate new rectangles
+function generateRectangle(column) {
+    const rectangle = {
+      x: column.x,
+      y: 0,
+      width: canvas.width / 8,
+      height: Math.random() * 200 + 50,
+      color: column.color,
+      key: column.key,
+      keyCode: column.keyCode
+    };
+    rectangles.push(rectangle);
+    column.nextRectangleTime = Date.now() + Math.random() * 4000;
+  }
+  
+  // Initialize nextRectangleTime for each column
+  columns.forEach((column) => {
+    column.nextRectangleTime = Date.now() + Math.random() * 4000;
+  });
+  
+  // Function to update the game state
+  let lastTime = Date.now();
+  let timer = 15;
+  function update() {
+    const currentTime = Date.now();
+    const deltaTime = (currentTime - lastTime) / 1000;
+    lastTime = currentTime;
+  
+    // Update rectangle positions
+    rectangles.forEach((rectangle) => {
+      rectangle.y += 200 * deltaTime;
+    });
+  
+    // Remove rectangles that have gone off the screen
+    rectangles = rectangles.filter((rectangle) => rectangle.y < canvas.height);
+  
+    // Generate new rectangles
+    columns.forEach((column) => {
+      if (Date.now() > column.nextRectangleTime && !column.rectangleGap) {
+        generateRectangle(column);
+      }
+      if (column.rectangleGap && Date.now() - column.lastRectangleTime > 1000) {
+        column.rectangleGap = false;
+      }
+    });
+  
+    // Update points
+    columns.forEach((column) => {
+      const rectangle = rectangles.find((rectangle) => rectangle.x === column.x && rectangle.y + rectangle.height > canvas.height - 50 && rectangle.y < canvas.height - 50);
+      if (rectangle && keyPressed[rectangle.keyCode]) {
+        points += deltaTime;
+      } else if (keyPressed[column.keyCode] && !rectangle && !column.rectangleGap && timer > 0) {
+        points -= deltaTime;
+      }
+      if (rectangle && rectangle.y > canvas.height - 50) {
+        column.rectangleGap = true;
+        column.lastRectangleTime = Date.now();
+      }
+    });
+  
+    // Update timer
+    timer -= deltaTime;
+    if (timer <= 0) {
+      timer = 0;
+      rectangles = [];
+    }
+  }
+
+// Function to draw the game
+function draw() {
+  // Clear the canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Draw the columns
+  columns.forEach((column) => {
+    ctx.fillStyle = 'white';
+    ctx.fillRect(column.x, canvas.height - 50, canvas.width / 8, 50);
+    ctx.fillStyle = 'black';
+    ctx.font = '24px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(column.key, column.x + canvas.width / 16, canvas.height - 20);
+  });
+
+  // Draw the rectangles
+  rectangles.forEach((rectangle) => {
+    ctx.fillStyle = rectangle.color;
+    ctx.fillRect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+  });
+
+  // Draw the points
+  ctx.fillStyle = 'black';
+  ctx.font = '24px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText(`Points: ${Math.floor(points)}`, 20, 40);
+
+  // Draw the timer
+  ctx.textAlign = 'right';
+  ctx.fillText(`Time: ${Math.floor(timer)}`, canvas.width - 20, 40);
+
+  // Draw game over screen
+  if (timer <= 0) {
+    ctx.textAlign = 'center';
+    ctx.font = '48px Arial';
+    ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+    ctx.font = '24px Arial';
+    ctx.fillText(`Final Points: ${Math.floor(points)}`, canvas.width / 2, canvas.height / 2 + 50);
+  }
+}
+
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// Start generating rectangles for each column
+columns.forEach((column) => {
+  generateRectangle(column);
+});
+
+loop();
