@@ -7,7 +7,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to change the icon
     function changeIcon() {
       currentIconIndex = (currentIconIndex + 1) % icons.length;
-      loadingIcon.src =  icons[currentIconIndex];
+      loadingIcon.src = icons[currentIconIndex];
+      loadingIcon.onerror = () => {
+        console.error(`Error loading image: ${icons[currentIconIndex]}`);
+      };
     }
   
     // Change the icon every second
