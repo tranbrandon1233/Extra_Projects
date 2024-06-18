@@ -6,7 +6,6 @@ document.head.appendChild(script);
 function onOpenCvReady() {
    const input = document.createElement('input');
    input.type = 'file';
-   input.accept = 'image/*';
    input.addEventListener('change', onFileSelected);
    document.body.appendChild(input);
 

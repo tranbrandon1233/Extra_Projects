@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Detection</title>
+</head>
+<body>
+    <input type="file" id="imageInput" accept="image/*">
+    <canvas id="canvas" width="640" height="480"></canvas>
+    <script async src="https://cdn.jsdelivr.net/npm/@opencv/opencv.js@1.0.0/dist/opencv.min.js" onload="onOpenCVReady();"></script>
+    <script>
+        let cv;
+        function onOpenCVReady() {
+            cv = window.cv;
+            main();
+        }
+
+        function main() {
+            let imageInput = document.getElementById('imageInput');
+            let canvas = document.getElementById('canvas');
+            let ctx = canvas.getContext('2d');
+
+            imageInput.addEventListener('change', (e) => {
+                let file = imageInput.files[0];
+                let reader = new FileReader();
+                reader.onload = (event) => {
+                    let imageData = event.target.result;
+                    let image = new Image();
+                    image.onload = () => {
+                        canvas.width = image.width;
+                        canvas.height = image.height;
+                        ctx.drawImage(image, 0, 0);
+                        let mat = cv.imread(canvas);
+                        detectFaces(mat, file.name);
+                    };
+                    image.src = imageData;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function detectFaces(mat, filename) {
+            let gray = new cv.Mat();
+            cv.cvtColor(mat, gray, cv.COLOR_RGBA2GRAY);
+
+            let faceCascade = new cv.CascadeClassifier();
+            faceCascade.load('haarcascade_frontalface_default.xml');
+
+            let faces = new cv.RectVector();
+            faceCascade.detectMultiScale(gray, faces);
+
+            for (let i = 0; i < faces.size(); i++) {
+                let face = faces.get(i);
+                let point1 = new cv.Point(face.x, face.y);
+                let point2 = new cv.Point(face.x + face.width, face.y + face.height);
+                cv.rectangle(mat, point1, point2, [0, 0, 255, 255], 2);
+            }
+
+            cv.imshow(canvas, mat);
+
+            let link = document.createElement('a');
+            link.href = canvas.toDataURL();
+            link.download = filename.split('.')[0] + '_faces.' + filename.split('.')[1];
+            link.click();
+
+            mat.delete();
+            gray.delete();
+            faceCascade.delete();
+            faces.delete();
+        }
+    </script>
+</body>
+</html>
