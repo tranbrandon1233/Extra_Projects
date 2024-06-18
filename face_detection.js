@@ -29,7 +29,7 @@ function onOpenCvReady() {
        cv.cvtColor(imgData, gray, cv.COLOR_RGBA2GRAY, 0);
 
        const faceCascade = new cv.CascadeClassifier();
-       faceCascade.load('haarcascade_frontalface_default.xml');
+       faceCascade.load('face_cascade.xml');
 
        const faces = new cv.RectVector();
        const scaleFactor = 1.1;
