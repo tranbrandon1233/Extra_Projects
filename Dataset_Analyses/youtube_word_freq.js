@@ -11,6 +11,7 @@ async function getData() {
         // Loop through the text column and extract words
         data.rows.forEach((row) => {
             const text = row.row.text;
+            const titles = row.row.title;
             const words = text.split(/[,\. ]+/);
 
             // Remove case sensitivity
@@ -23,10 +24,10 @@ async function getData() {
                 }
 
                 // Increment the frequency of the word
-                if (wordFrequency[word]) {
-                    wordFrequency[word]++;
-                } else {
+                if (!wordFrequency[word]) {
                     wordFrequency[word] = 1;
+                } else {
+                    wordFrequency[word]++;
                 }
             });
         });
