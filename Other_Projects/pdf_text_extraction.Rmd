@@ -1,0 +1,49 @@
+```{r}
+library(readr)
+library(stringr)
+library(dplyr)
+
+# Define paths
+input_dir <- "./my_files/article_text/full_text"
+output_dir <- "./my_files/article_text/method_text"
+metadata_path <- "./my_files/article_metadata/text_layout/MDPI_sections.csv"
+
+# Read metadata and create the meth_start_stop table
+sections_info <- read_csv(metadata_path)
+meth_start_stop <- sections_info %>%
+  filter(str_detect(keyword, "Materials and Methods") | str_detect(keyword, "Introduction") | str_detect(keyword, "Results") | str_detect(keyword, "Discussion") | str_detect(keyword, "Conclusions")) %>%
+  group_by(my_id) %>%
+  arrange(my_id, line_num) %>%
+  reframe(
+    section_of_interest = line_text[str_detect(keyword, "Materials and Methods")],
+    previous_section = lag(line_text)[str_detect(keyword, "Materials and Methods")],
+    following_section = lead(line_text)[str_detect(keyword, "Materials and Methods")],
+    section_line_num = line_num[str_detect(keyword, "Materials and Methods")],
+    prev_section_line_num = lag(line_num)[str_detect(keyword, "Materials and Methods")],
+    following_section_line_num = lead(line_num)[str_detect(keyword, "Materials and Methods")],
+    .groups = 'drop'
+  )
+
+# Extract the "Materials and Methods" sections using a for loop
+process_file <- function(file_info){
+  # Get file paths
+  text_file_path <- file.path(input_dir, paste0(file_info["my_id"], ".txt"))
+  output_file_path <- file.path(output_dir, paste0(file_info["my_id"], "_meth.txt"))
+  
+  # Check if the file exists
+  if (file.exists(text_file_path)) {
+    # Read the file
+    lines <- readLines(text_file_path)
+    # Get the starting line index of the "Materials and Methods" section
+    start_index <- file_info["section_line_num"]
+    # Get the last line index of the "Materials and Methods" section, or the last line of the text file if it is not available
+    end_index <- ifelse(!is.na(file_info["following_section_line_num"]), as.numeric(file_info["following_section_line_num"]) - 1, length(lines))
+    # Write the text to the new file
+    methods_text <- lines[start_index:end_index]
+    writeLines(methods_text, output_file_path)
+  }
+}
+
+apply(meth_start_stop,1,process_file)
+
+```
