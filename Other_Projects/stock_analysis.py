@@ -11,15 +11,6 @@ class ManualStrategy:
         self.impact = impact
         self.commission = commission
 
-
-
-    def author(self):
-        return 'crector3'
-
-    def add_evidence(self, symbol='IBM', sd=dt.datetime(2008, 1, 1), ed=dt.datetime(2009, 1, 1), sv=10000):
-        # This function might be a placeholder as the rules are hard-coded
-        pass
-
     def bollinger_bands(self,symbol, dates, window=20):
 
         # stock_data = get_data([symbol], dates)
