@@ -1,0 +1,62 @@
+// index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Simulation</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Monospace;
+            font-size: 13px;
+            line-height: 24px;
+            overscroll-behavior: none;
+            text-rendering: optimizeLegibility;
+            user-select: none;
+        }
+
+        #inventory {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 50px;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-gap: 10px;
+            padding: 10px;
+            color: #fff;
+        }
+
+        .inventory-item {
+            background-color: #333;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .inventory-item.active {
+            background-color: #555;
+        }
+
+        #held-object {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div id="inventory"></div>
+    <div id="held-object"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
