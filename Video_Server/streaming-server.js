@@ -6,6 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 app.use(express.static('public'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 let videoBuffer = Buffer.alloc(0);
 
@@ -17,17 +18,17 @@ io.on('connection', (socket) => {
     socket.on('end', () => {
         const videoPath = './uploads/video.mp4';
         fs.writeFileSync(videoPath, videoBuffer);
-        io.emit('videoReady');
+        io.emit('videoReady', '/uploads/video.mp4');
+    });
+    socket.on('comment', (comment) => {
+        // Send the comment to the server on port 8000
+        const socketToUploadServer = require('socket.io-client')('http://localhost:8000');
+        socketToUploadServer.emit('comment', comment);
     });
 });
 
 app.get('/play', (req, res) => {
     res.sendFile(__dirname + '/public/play.html');
-});
-
-app.get('/video', (req, res) => {
-    const videoPath = './uploads/video.mp4';
-    res.sendFile(path.join(__dirname, videoPath));
 });
 
 server.listen(8001, () => {

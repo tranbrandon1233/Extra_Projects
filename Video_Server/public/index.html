@@ -9,8 +9,11 @@
         <input type="file" name="video" accept="video/mp4">
         <button type="submit">Upload</button>
     </form>
+    <div id="comments"></div>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
+        const socket = io();
         const form = document.getElementById('upload-form');
         form.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -21,6 +24,14 @@
             })
             .then((res) => res.text())
             .then((message) => console.log(message));
+        });
+
+        // Display comments received from the server
+        socket.on('comment', (comment) => {
+            const commentsDiv = document.getElementById('comments');
+            const commentPara = document.createElement('p');
+            commentPara.textContent = comment;
+            commentsDiv.appendChild(commentPara);
         });
     </script>
 </body>

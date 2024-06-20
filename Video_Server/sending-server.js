@@ -2,6 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const app = express();
 const upload = multer({ dest: './uploads/' });
+const server = require('http').createServer(app);
+const io = require('socket.io')(server);
 
 app.use(express.static('public'));
 
@@ -18,6 +20,13 @@ app.post('/upload', upload.single('video'), (req, res) => {
     });
 });
 
-app.listen(8000, () => {
+io.on('connection', (socket) => {
+    socket.on('comment', (comment) => {
+        // Broadcast the comment to all connected clients
+        io.emit('comment', comment);
+    });
+});
+
+server.listen(8000, () => {
     console.log('Upload server listening on port 8000');
 });

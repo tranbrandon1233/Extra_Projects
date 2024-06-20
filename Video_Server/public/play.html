@@ -6,14 +6,34 @@
 <body>
     <h1>Play Video</h1>
     <video id="video-player" width="640" height="480" controls></video>
+    <input id="comment-input" type="text" placeholder="Enter your comment">
+    <button id="send-comment-btn">Send Comment</button>
+    <div id="comments"></div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script>
         const socket = io();
-        socket.on('videoReady', () => {
+        socket.on('videoReady', (videoPath) => {
             const videoPlayer = document.getElementById('video-player');
-            videoPlayer.src = '/video';
+            videoPlayer.src = videoPath;
             videoPlayer.play();
+        });
+
+        // Send comment to the server on port 8000
+        const commentInput = document.getElementById('comment-input');
+        const sendCommentBtn = document.getElementById('send-comment-btn');
+        sendCommentBtn.addEventListener('click', () => {
+            const comment = commentInput.value;
+            socket.emit('comment', comment);
+            commentInput.value = '';
+        });
+
+        // Display comments received from the server on port 8000
+        socket.on('comment', (comment) => {
+            const commentsDiv = document.getElementById('comments');
+            const commentPara = document.createElement('p');
+            commentPara.textContent = comment;
+            commentsDiv.appendChild(commentPara);
         });
     </script>
 </body>
