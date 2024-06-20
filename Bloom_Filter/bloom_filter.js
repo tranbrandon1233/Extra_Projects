@@ -1,4 +1,4 @@
-class SpectralBloomFilter  {
+class SpectralBloomFilter {
   constructor(size) {
     this.size = size;
     this.bitArray = new Array(size).fill(0);
@@ -31,9 +31,9 @@ class SpectralBloomFilter  {
   add(item, count = 1) {
     this.hashFunctions.forEach((hashFunction) => {
       const position = hashFunction(item);
-      this.bitArray[position] = Math.min(this.bitArray[position] + count, 255);
+      this.bitArray[position] = Math.min(255, this.bitArray[position] + count);
     });
-    this.numElements += count;
+    this.numElements++; // Increment the numElements property
   }
 
   // Check the count of an element in the filter
@@ -41,16 +41,16 @@ class SpectralBloomFilter  {
     return Math.min(...this.hashFunctions.map((hashFunction) => {
       const position = hashFunction(item);
       return this.bitArray[position];
-    })) / this.hashFunctions.length;
+    }));
   }
 
   // Remove a count of an element from the filter
   remove(item, count = 1) {
     this.hashFunctions.forEach((hashFunction) => {
       const position = hashFunction(item);
-      this.bitArray[position] = Math.max(this.bitArray[position] - count, 0);
+      this.bitArray[position] = Math.max(0, this.bitArray[position] - count);
     });
-    this.numElements -= count;
+    this.numElements--; // Decrement the numElements property
   }
 
   // Calculate the probability of a false positive
@@ -72,6 +72,6 @@ filter.add('orange');
 
 console.log(filter.check('apple')); // Output: 1
 console.log(filter.check('test')); // Output: 0
-filter.remove('apple')
+filter.remove('apple');
 
-console.log(filter.check("apple")); // Output: 0
+console.log(filter.check('apple')); // Output: 0
