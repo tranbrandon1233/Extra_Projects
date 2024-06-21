@@ -176,9 +176,7 @@ for (let i = 0; i < pixelData.length; i += 4) {
 
   // Function to reset the image
   function resetImage() {
-    if (clickedColor !== null) return; // Add this line
-    const canvas = document.querySelector('canvas');
-    const context = canvas.getContext('2d');
+    // Put the original image data back into the Canvas
     context.putImageData(originalImageData, 0, 0);
   }
   
@@ -304,40 +302,41 @@ let highlightedColor = null; // Add a variable to keep track of the highlighted 
 let clickedColor = null; // Add a variable to keep track of the clicked color
 
 function toggleHighlighting(color) {
-    if (clickedColor === color) {
-      resetImage();
-      clickedColor = null; // Reset clickedColor
-    } else {
-      resetImage();
-      clickedColor = color;
-      highlightColor(color);
+  if (clickedColor === color) {
+    // If the same color is clicked again, reset the image
+    resetImage();
+    clickedColor = null;
+  } else {
+    // If a different color is clicked, reset the image and highlight the new color
+    resetImage();
+    clickedColor = color;
+    highlightColor(color);
+  }
+}
+
+function highlightColor(color) {
+  const canvas = document.querySelector('canvas');
+  const context = canvas.getContext('2d');
+  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+  const data = imageData.data;
+
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const a = data[i + 3];
+
+    if (a === 0) {
+      continue;
+    }
+
+    if (!matchesColor(r, g, b, color)) {
+      data[i + 3] = 0; // Set alpha to 0 (transparent) for non-matching colors
     }
   }
 
-function highlightColor(color) {
-    if (clickedColor !== null) return; // Add this line
-    const canvas = document.querySelector('canvas');
-    const context = canvas.getContext('2d');
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-  
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const a = data[i + 3];
-  
-      if (a === 0) {
-        continue;
-      }
-  
-      if (!matchesColor(r, g, b, color)) {
-        data[i + 3] = 0; // Set alpha to 0 (transparent) for non-matching colors
-      }
-    }
-  
-    context.putImageData(imageData, 0, 0);
-  }
+  context.putImageData(imageData, 0, 0);
+}
 
 
 function createColorBlocks(colorCounts) {
@@ -427,4 +426,3 @@ function matchesColor(r, g, b, color) {
 }
 // Add the highlightColor function to the window object
 window.highlightColor = highlightColor;
-
