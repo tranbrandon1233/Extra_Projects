@@ -132,7 +132,6 @@ function checkGhostCollision() {
   return false;
 }
 
-
 // Change the ghost direction every three seconds
 setInterval(() => {
   ghost1.direction = getRandomDirection();
@@ -379,8 +378,7 @@ function updatePlayer() {
   }
 }
   
-  // Check for collisions between the player, ghosts, and pellets
-// Update the game state
+// Check for collisions between the player, ghosts, and pellets
 function checkCollisions() {
   // Check for collisions with ghosts
   checkGhostCollision();
@@ -416,7 +414,6 @@ function init() {
     }
   }
 }
-
 
 // Draw the pellets
 function drawPellets() {
