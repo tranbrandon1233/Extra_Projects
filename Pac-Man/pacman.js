@@ -17,22 +17,319 @@ const BACKGROUND_COLOR = 'black';
 const MAZE = [
   "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
   "X                             X",
-  "X  XXX  XXX  XXX  XXX  XXX  X",
-  "X  X     X     X     X     X  X",
+  "X  X                       X  X",
+  "X  X                       X  X",
   "X  X  XXX  XXX  XXX  XXX  X  X",
-  "X  X  X     X     X     X  X  X",
+  "X  X                       X  X",
+  "X  X                       X  X",
   "X  XXX  XXX  XXX  XXX  XXX  X",
-  "X     X     X     X     X     X",
-  "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
   "X                             X",
   "X  XXX  XXX  XXX  XXX  XXX  X",
-  "X  X     X     X     X     X  X",
+  "X  X                       X  X",
+  "X  X                       X  X",
   "X  X  XXX  XXX  XXX  XXX  X  X",
-  "X  X  X     X     X     X  X  X",
+  "X  X                       X  X",
+  "X  X                       X  X",
   "X  XXX  XXX  XXX  XXX  XXX  X",
-  "X     X     X     X     X     X",
+  "X                             X",
   "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
 ];
+
+// Update the ghost positions
+function updateGhosts() {
+  // Update ghost 1 position
+  switch (ghost1.direction) {
+    case 'up':
+      if (isWall(ghost1.x, ghost1.y - ghost1.speed)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost1.y -= ghost1.speed;
+      }
+      break;
+    case 'down':
+      if (isWall(ghost1.x, ghost1.y + ghost1.speed)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost1.y += ghost1.speed;
+      }
+      break;
+    case 'left':
+      if (isWall(ghost1.x - ghost1.speed, ghost1.y)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost1.x -= ghost1.speed;
+      }
+      break;
+    case 'right':
+      if (isWall(ghost1.x + ghost1.speed, ghost1.y)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost1.x += ghost1.speed;
+      }
+      break;
+  }
+
+  // Update ghost 2 position
+  switch (ghost2.direction) {
+    case 'up':
+      if (isWall(ghost2.x, ghost2.y - ghost2.speed)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost2.y -= ghost2.speed;
+      }
+      break;
+    case 'down':
+      if (isWall(ghost2.x, ghost2.y + ghost2.speed)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost2.y += ghost2.speed;
+      }
+      break;
+    case 'left':
+      if (isWall(ghost2.x - ghost2.speed, ghost2.y)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost2.x -= ghost2.speed;
+      }
+      break;
+    case 'right':
+      if (isWall(ghost2.x + ghost2.speed, ghost2.y)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost2.x += ghost2.speed;
+      }
+      break;
+  }
+
+  // Update ghost 3 position
+  switch (ghost3.direction) {
+    case 'up':
+      if (isWall(ghost3.x, ghost3.y - ghost3.speed)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost3.y -= ghost3.speed;
+      }
+      break;
+    case 'down':
+      if (isWall(ghost3.x, ghost3.y + ghost3.speed)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost3.y += ghost3.speed;
+      }
+      break;
+    case 'left':
+      if (isWall(ghost3.x - ghost3.speed, ghost3.y)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost3.x -= ghost3.speed;
+      }
+      break;
+    case 'right':
+      if (isWall(ghost3.x + ghost3.speed, ghost3.y)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost3.x += ghost3.speed;
+      }
+      break;
+  }
+
+  // Update ghost 4 position
+  switch (ghost4.direction) {
+    case 'up':
+      if (isWall(ghost4.x, ghost4.y - ghost4.speed)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost4.y -= ghost4.speed;
+      }
+      break;
+    case 'down':
+      if (isWall(ghost4.x, ghost4.y + ghost4.speed)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost4.y += ghost4.speed;
+      }
+      break;
+    case 'left':
+      if (isWall(ghost4.x - ghost4.speed, ghost4.y)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost4.x -= ghost4.speed;
+      }
+      break;
+    case 'right':
+      if (isWall(ghost4.x + ghost4.speed, ghost4.y)) {
+        // Do nothing, just stop moving
+      } else {
+        ghost4.x += ghost4.speed;
+      }
+      break;
+  }
+}
+
+// Change the ghost direction every three seconds
+setInterval(() => {
+  ghost1.direction = getRandomDirection();
+  ghost2.direction = getRandomDirection();
+  ghost3.direction = getRandomDirection();
+  ghost4.direction = getRandomDirection();
+}, 1000);
+
+// Check if a wall is at the given position
+function isWall(x, y) {
+  const wallX = Math.floor(x / 20);
+  const wallY = Math.floor(y / 20);
+  return MAZE[wallY][wallX] === 'X';
+}
+
+
+
+// Draw the ghosts
+function drawGhosts() {
+  ctx.fillStyle = GHOST_COLOR;
+  ctx.beginPath();
+  ctx.arc(ghost1.x, ghost1.y, ghost1.radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(ghost2.x, ghost2.y, ghost2.radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(ghost3.x, ghost3.y, ghost3.radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(ghost4.x, ghost4.y, ghost4.radius, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// Check for collisions
+function checkCollisions() {
+  for (let i = 0; i < pellets.length; i++) {
+    if (Math.hypot(player.x - pellets[i].x, player.y - pellets[i].y) < player.radius + 5) {
+      pellets.splice(i, 1);
+      score++;
+    }
+  }
+
+  if (Math.hypot(player.x - ghost1.x, player.y - ghost1.y) < player.radius + ghost1.radius) {
+    if (!player.immune) {
+      player.lives--;
+      player.immune = true;
+    }
+  }
+
+  if (Math.hypot(player.x - ghost2.x, player.y - ghost2.y) < player.radius + ghost2.radius) {
+    if (!player.immune) {
+      player.lives--;
+      player.immune = true;
+    }
+  }
+
+  if (Math.hypot(player.x - ghost3.x, player.y - ghost3.y) < player.radius + ghost3.radius) {
+    if (!player.immune) {
+      player.lives--;
+      player.immune = true;
+    }
+  }
+
+  if (Math.hypot(player.x - ghost4.x, player.y - ghost4.y) < player.radius + ghost4.radius) {
+    if (!player.immune) {
+      player.lives--;
+      player.immune = true;
+    }
+  }
+
+  if (player.lives <= 0 || pellets.length === 0) {
+    gameOver = true;
+  }
+}
+
+// Get a random direction
+function getRandomDirection() {
+  const directions = ['up', 'down', 'left', 'right'];
+  return directions[Math.floor(Math.random() * directions.length)];
+}
+
+// Initialize the ghosts
+const ghost1 = {
+  x: 100,
+  y: 100,
+  radius: 10,
+  speed: 2,
+  direction: getRandomDirection(),
+};
+
+const ghost2 = {
+  x: 150,
+  y: 150,
+  radius: 10,
+  speed: 2,
+  direction: getRandomDirection(),
+};
+
+const ghost3 = {
+  x: 200,
+  y: 200,
+  radius: 10,
+  speed: 2,
+  direction: getRandomDirection(),
+};
+
+const ghost4 = {
+  x: 250,
+  y: 200,
+  radius: 10,
+  speed: 2,
+  direction: getRandomDirection(),
+};
+
+
+// Draw the win or lose screen
+function drawWinOrLoseScreen() {
+  if (gameOver) {
+    ctx.fillStyle = 'white';
+    ctx.font = '48px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+  } else if (pellets.length === 0) {
+    ctx.fillStyle = 'white';
+    ctx.font = '48px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('You Win!', canvas.width / 2, canvas.height / 2);
+  }
+}
+
+// Game loop
+function gameLoop() {
+  ctx.fillStyle = BACKGROUND_COLOR;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawMaze();
+  drawPlayer();
+  drawGhosts();
+  drawPellets();
+  drawScoreAndLives();
+  updatePlayer();
+  updateGhosts();
+  checkCollisions();
+
+  if (gameOver) {
+    ctx.fillStyle = 'white';
+    ctx.font = '48px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    if (player.lives <= 0) {
+      ctx.fillText('Game Over: You Lose!', canvas.width / 2, canvas.height / 2);
+    } else if (pellets.length === 0) {
+      ctx.fillText('Game Over: You Win!', canvas.width / 2, canvas.height / 2);
+    }
+    return;
+  }
+
+  requestAnimationFrame(gameLoop);
+}
 
 // Define the player and ghost objects
 const player = {
@@ -44,19 +341,7 @@ const player = {
   immune: false,
 };
 
-const ghost1 = {
-  x: 100,
-  y: 100,
-  radius: 10,
-  speed: 2,
-};
 
-const ghost2 = {
-  x: 150,
-  y: 150,
-  radius: 10,
-  speed: 2,
-};
 
 // Define the pellet array
 const pellets = [];
@@ -85,17 +370,6 @@ function drawPlayer() {
   ctx.fill();
 }
 
-// Draw the ghosts
-function drawGhosts() {
-  ctx.fillStyle = GHOST_COLOR;
-  ctx.beginPath();
-  ctx.arc(ghost1.x, ghost1.y, ghost1.radius, 0, Math.PI * 2);
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.arc(ghost2.x, ghost2.y, ghost2.radius, 0, Math.PI * 2);
-  ctx.fill();
-}
 
 // Draw the pellets
 function drawPellets() {
@@ -152,110 +426,6 @@ function updatePlayer() {
   }
 }
 
-// Update the ghost positions
-function updateGhosts() {
-  if (ghost1.x < player.x) {
-    if (ghost1.x + ghost1.speed <= canvas.width) {
-      ghost1.x += ghost1.speed;
-    }
-  } else if (ghost1.x > player.x) {
-    if (ghost1.x - ghost1.speed >= 0) {
-      ghost1.x -= ghost1.speed;
-    }
-  }
-
-  if (ghost1.y < player.y) {
-    if (ghost1.y + ghost1.speed <= canvas.height) {
-      ghost1.y += ghost1.speed;
-    }
-  } else if (ghost1.y > player.y) {
-    if (ghost1.y - ghost1.speed >= 0) {
-      ghost1.y -= ghost1.speed;
-    }
-  }
-
-  if (ghost2.x < player.x) {
-    if (ghost2.x + ghost2.speed <= canvas.width) {
-      ghost2.x += ghost2.speed;
-    }
-  } else if (ghost2.x > player.x) {
-    if (ghost2.x - ghost2.speed >= 0) {
-      ghost2.x -= ghost2.speed;
-    }
-  }
-
-  if (ghost2.y < player.y) {
-    if (ghost2.y + ghost2.speed <= canvas.height) {
-      ghost2.y += ghost2.speed;
-    }
-  } else if (ghost2.y > player.y) {
-    if (ghost2.y - ghost2.speed >= 0) {
-      ghost2.y -= ghost2.speed;
-    }
-  }
-
-  for (let i = 0; i < MAZE.length; i++) {
-    for (let j = 0; j < MAZE[i].length; j++) {
-      if (MAZE[i][j] === 'X') {
-        if (ghost1.x + ghost1.radius > j * 20 && ghost1.x - ghost1.radius < j * 20 + 20 && ghost1.y + ghost1.radius > i * 20 && ghost1.y - ghost1.radius < i * 20 + 20) {
-          if (ghost1.x < player.x) {
-            ghost1.x -= ghost1.speed;
-          } else if (ghost1.x > player.x) {
-            ghost1.x += ghost1.speed;
-          }
-
-          if (ghost1.y < player.y) {
-            ghost1.y -= ghost1.speed;
-          } else if (ghost1.y > player.y) {
-            ghost1.y += ghost1.speed;
-          }
-        }
-
-        if (ghost2.x + ghost2.radius > j * 20 && ghost2.x - ghost2.radius < j * 20 + 20 && ghost2.y + ghost2.radius > i * 20 && ghost2.y - ghost2.radius < i * 20 + 20) {
-          if (ghost2.x < player.x) {
-            ghost2.x -= ghost2.speed;
-          } else if (ghost2.x > player.x) {
-            ghost2.x += ghost2.speed;
-          }
-
-          if (ghost2.y < player.y) {
-            ghost2.y -= ghost2.speed;
-          } else if (ghost2.y > player.y) {
-            ghost2.y += ghost2.speed;
-          }
-        }
-      }
-    }
-  }
-}
-
-// Check for collisions
-function checkCollisions() {
-  for (let i = 0; i < pellets.length; i++) {
-    if (Math.hypot(player.x - pellets[i].x, player.y - pellets[i].y) < player.radius + 5) {
-      pellets.splice(i, 1);
-      score++;
-    }
-  }
-
-  if (Math.hypot(player.x - ghost1.x, player.y - ghost1.y) < player.radius + ghost1.radius) {
-    if (!player.immune) {
-      player.lives--;
-      player.immune = true;
-    }
-  }
-
-  if (Math.hypot(player.x - ghost2.x, player.y - ghost2.y) < player.radius + ghost2.radius) {
-    if (!player.immune) {
-      player.lives--;
-      player.immune = true;
-    }
-  }
-
-  if (player.lives <= 0) {
-    gameOver = true;
-  }
-}
 
 // Initialize the game
 function init() {
@@ -279,30 +449,6 @@ function drawScoreAndLives() {
   ctx.fillText(`Lives: ${player.lives}`, canvas.width - 10, 10);
 }
 
-// Game loop
-function gameLoop() {
-  ctx.fillStyle = BACKGROUND_COLOR;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  drawMaze();
-  drawPlayer();
-  drawGhosts();
-  drawPellets();
-  drawScoreAndLives();
-  updatePlayer();
-  updateGhosts();
-  checkCollisions();
-
-  if (gameOver) {
-    ctx.fillStyle = 'white';
-    ctx.font = '48px Arial';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
-    return;
-  }
-
-  requestAnimationFrame(gameLoop);
-}
 
 // Key press event handler
 let keyPressed = '';
