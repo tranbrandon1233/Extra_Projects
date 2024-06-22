@@ -226,9 +226,6 @@ const ghost8 = {
 // Define the ghosts array
 let ghosts = [ghost1, ghost2, ghost3, ghost4, ghost5, ghost6, ghost7, ghost8];
 
-
-
-
 // Draw the win or lose screen
 function drawWinOrLoseScreen() {
   ctx.fillStyle = BACKGROUND_COLOR;
@@ -245,7 +242,6 @@ function drawWinOrLoseScreen() {
   ctx.font = '24px Arial';
   ctx.fillText('Press Space to Restart', canvas.width / 2, canvas.height / 2 + 50);
 }
-
 
 // Game loop
 function gameLoop() {
@@ -319,8 +315,6 @@ const player = {
   immune: false,
 };
 
-
-
 // Define the pellet array
 let pellets = [];
 
@@ -349,8 +343,6 @@ function drawPlayer() {
   ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
   ctx.fill();
 }
-
-
 
 // Draw the score and lives
 function drawScoreAndLives() {
