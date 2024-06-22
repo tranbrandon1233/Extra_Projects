@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborative Code Editor</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/codemirror.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/mode/python/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.63.3/mode/clike/clike.min.js"></script>
+    <style>
+        .CodeMirror {
+            height: 600px;
+        }
+        #run-button {
+            background-color: #4CAF50;
+            border: none;
+            padding: 10px;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #output {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        #language-select {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="language-select">
+        <span>Language:</span>
+        <select id="language-dropdown">
+            <option value="python">Python</option>
+            <option value="cpp">C++</option>
+        </select>
+    </div>
+    <div id="editor"></div>
+    <button id="run-button"><span>&#9654;</span> Run</button>
+    <div id="output"></div>
+
+    <script>
+        const socket = io();
+        const editor = CodeMirror(document.getElementById('editor'), {
+            mode: 'python',
+            lineNumbers: true,
+            indentUnit: 4,
+            indentWithTabs: true,
+        });
+        const runButton = document.getElementById('run-button');
+        const outputDiv = document.getElementById('output');
+        const languageDropdown = document.getElementById('language-dropdown');
+
+        // Register user
+        const userId = Math.random().toString(36).substr(2, 9);
+        socket.emit('registerUser', userId);
+
+        socket.on('init', (initialCode) => {
+            editor.setValue(initialCode);
+        });
+
+        socket.on('updateCode', (newCode) => {
+            if (editor.getValue() !== newCode) {
+                editor.setValue(newCode);
+            }
+        });
+
+        socket.on('updateLanguage', (newLanguage) => {
+            if (newLanguage === 'python') {
+                editor.setOption('mode', 'python');
+            } else if (newLanguage === 'cpp') {
+                editor.setOption('mode', 'text/x-c++src');
+            }
+        });
+
+        socket.on('runOutput', (output) => {
+            outputDiv.innerText = output;
+        });
+
+        editor.on('change', () => {
+            socket.emit('codeChange', editor.getValue());
+        });
+
+        languageDropdown.addEventListener('change', () => {
+            const selectedLanguage = languageDropdown.value;
+            socket.emit('languageChange', selectedLanguage);
+            if (selectedLanguage === 'python') {
+                editor.setOption('mode', 'python');
+            } else if (selectedLanguage === 'cpp') {
+                editor.setOption('mode', 'text/x-c++src');
+            }
+        });
+
+        runButton.addEventListener('click', () => {
+            socket.emit('runCode', editor.getValue());
+        });
+    </script>
+</body>
+</html>
