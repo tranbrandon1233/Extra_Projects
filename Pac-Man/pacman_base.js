@@ -203,6 +203,48 @@ function drawGhosts() {
   ctx.fill();
 }
 
+// Check for collisions
+function checkCollisions() {
+  for (let i = 0; i < pellets.length; i++) {
+    if (Math.hypot(player.x - pellets[i].x, player.y - pellets[i].y) < player.radius + 5) {
+      pellets.splice(i, 1);
+      score++;
+    }
+  }
+
+  if (Math.hypot(player.x - ghost1.x, player.y - ghost1.y) < player.radius + ghost1.radius) {
+    if (!player.immune) {
+      player.lives--;
+      player.immune = true;
+    }
+  }
+
+  if (Math.hypot(player.x - ghost2.x, player.y - ghost2.y) < player.radius + ghost2.radius) {
+    if (!player.immune) {
+      player.lives--;
+      player.immune = true;
+    }
+  }
+
+  if (Math.hypot(player.x - ghost3.x, player.y - ghost3.y) < player.radius + ghost3.radius) {
+    if (!player.immune) {
+      player.lives--;
+      player.immune = true;
+    }
+  }
+
+  if (Math.hypot(player.x - ghost4.x, player.y - ghost4.y) < player.radius + ghost4.radius) {
+    if (!player.immune) {
+      player.lives--;
+      player.immune = true;
+    }
+  }
+
+  if (player.lives <= 0 || pellets.length === 0) {
+    gameOver = true;
+  }
+}
+
 // Get a random direction
 function getRandomDirection() {
   const directions = ['up', 'down', 'left', 'right'];
@@ -241,7 +283,6 @@ const ghost4 = {
   speed: 2,
   direction: getRandomDirection(),
 };
-
 
 // Draw the win or lose screen
 function drawWinOrLoseScreen() {
@@ -299,8 +340,6 @@ const player = {
   immune: false,
 };
 
-
-
 // Define the pellet array
 const pellets = [];
 
@@ -336,6 +375,51 @@ function drawPellets() {
     ctx.beginPath();
     ctx.arc(pellets[i].x, pellets[i].y, 5, 0, Math.PI * 2);
     ctx.fill();
+  }
+}
+
+// Update the player position
+function updatePlayer() {
+  if (player.immune) {
+    setTimeout(() => {
+      player.immune = false;
+    }, 3000);
+  }
+
+  if (keyPressed === 'ArrowUp') {
+    if (player.y - player.speed >= 0) {
+      player.y -= player.speed;
+    }
+  } else if (keyPressed === 'ArrowDown') {
+    if (player.y + player.speed <= canvas.height) {
+      player.y += player.speed;
+    }
+  } else if (keyPressed === 'ArrowLeft') {
+    if (player.x - player.speed >= 0) {
+      player.x -= player.speed;
+    }
+  } else if (keyPressed === 'ArrowRight') {
+    if (player.x + player.speed <= canvas.width) {
+      player.x += player.speed;
+    }
+  }
+
+  for (let i = 0; i < MAZE.length; i++) {
+    for (let j = 0; j < MAZE[i].length; j++) {
+      if (MAZE[i][j] === 'X') {
+        if (player.x + player.radius > j * 20 && player.x - player.radius < j * 20 + 20 && player.y + player.radius > i * 20 && player.y - player.radius < i * 20 + 20) {
+          if (keyPressed === 'ArrowUp') {
+            player.y += player.speed;
+          } else if (keyPressed === 'ArrowDown') {
+            player.y -= player.speed;
+          } else if (keyPressed === 'ArrowLeft') {
+            player.x += player.speed;
+          } else if (keyPressed === 'ArrowRight') {
+            player.x -= player.speed;
+          }
+        }
+      }
+    }
   }
 }
 
