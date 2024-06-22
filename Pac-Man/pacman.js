@@ -262,6 +262,12 @@ function gameLoop() {
     updatePlayer();
     updateGhosts();
     checkCollisions();
+    for (let i = powerPellets.length - 1; i >= 0; i--) {
+      if (checkPowerPelletCollision(powerPellets[i])) {
+        powerPellets.splice(i, 1);
+        score += 10;
+      }
+    }
   }
 
   requestAnimationFrame(gameLoop);
@@ -441,7 +447,6 @@ function checkPelletCollision(pellet) {
   const distance = Math.sqrt(Math.pow(player.x - pellet.x, 2) + Math.pow(player.y - pellet.y, 2));
   if (distance < player.radius + 5) {
     if (powerPellets.includes(pellet)) {
-      score += 50;
       // Turn ghosts red for 5 seconds
       for (let i = 0; i < ghosts.length; i++) {
         ghosts[i].color = 'red';
