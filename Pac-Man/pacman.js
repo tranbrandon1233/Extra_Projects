@@ -14,7 +14,6 @@ canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 document.body.style.overflow = 'hidden';
 
-
 // Define the maze
 const MAZE = [
   "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
@@ -264,7 +263,6 @@ function gameLoop() {
       }
     }
   }
-
   requestAnimationFrame(gameLoop);
 }
 
