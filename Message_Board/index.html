@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Message Board</title>
+    <style>   
+        .post-actions{
+            top: 10px;
+            right: 10px;
+            bottom: 10px;
+        }
+        .likes-dislikes {
+            position: relative;
+            bottom: 10px;
+            top: 10px;
+        }
+        
+        .like-button, .dislike-button {
+            cursor: pointer;
+        }
+        
+        .like-button.liked {
+            background-color: green;
+            color: white;
+        }
+        
+        .dislike-button.disliked {
+            background-color: red;
+            color: white;
+        }
+        .r9k-switch {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        .thread {
+            border: 1px solid black;
+            margin-bottom: 10px;
+            padding: 10px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        .comment {
+            margin-left: 20px;
+            position: relative;
+            padding: 10px;
+            border-bottom: 1px solid #ccc;
+        }
+        .comment-id {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 12px;
+            color: #666;
+        }
+        .image {
+            width: 100px;
+            height: 100px;
+            margin-right: 10px;
+            border-radius: 10px;
+            object-fit: cover;
+        }
+        .large {
+            width: 300px;
+            height: 300px;
+        }
+        .highlight {
+            background-color: yellow;
+        }
+        .create-comment {
+            margin-top: 10px;
+        }
+        input[type="text"], input[type="file"] {
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button[type="submit"] {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button[type="submit"]:hover {
+            background-color: #3e8e41;
+        }
+        .edit-icon, .delete-icon {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .delete-icon {
+            right: 50px;
+        }
+        .edit-form {
+            display: none;
+            background-color: #f2f2f2;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Message Board</h1>
+    <label class="r9k-switch">
+        <input type="checkbox" id="r9k-mode">
+        R9K Mode
+    </label>  
+    <form id="create-thread">
+        <input type="text" id="thread-name" placeholder="Name" required>
+        <input type="text" id="thread-message" placeholder="Message" required>
+        <input type="file" id="thread-image">
+        <button type="submit">Create Thread</button>
+    </form>
+    <div id="threads"></div>
+
+    <script>
+        let threads = [];
+
+        document.getElementById('create-thread').addEventListener('submit', (e) => {
+            e.preventDefault();
+            let name = document.getElementById('thread-name').value;
+            let message = document.getElementById('thread-message').value;
+            let image = document.getElementById('thread-image').files[0];
+
+            createThread(name, message, image);
+            document.getElementById('thread-name').value = '';
+            document.getElementById('thread-message').value = '';
+            document.getElementById('thread-image').value = '';
+        });
+            
+        function displayThreads() {
+                let threadsHTML = '';
+                threads.forEach((thread, index) => {
+                    threadsHTML += `  
+                        <div class="thread">
+                                 <div class="likes-dislikes">
+                                <button class="like-button ${thread.liked ? 'liked' : ''}" data-thread-index="${index}" data-comment-index="-1">Like</button>
+                                <span class="like-count">${thread.likes || 0}</span>
+                                <button class="dislike-button ${thread.disliked ? 'disliked' : ''}" data-thread-index="${index}" data-comment-index="-1">Dislike</button>
+                                <span class="dislike-count">${thread.dislikes || 0}</span>
+                            </div>
+                            <div class="actions" style="position: relative; top: 10px; right: 10px; bottom: 10px;">
+                                <i class="edit-icon" data-thread-index="${index}" data-comment-index="-1">Edit</i>
+                                <i class="delete-icon" data-thread-index="${index}" data-comment-index="-1">Delete</i>
+                            </div>
+                            <h2>${thread.name}</h2>
+                            <p>${thread.message}</p>
+                            ${thread.image ? `<img class="image" src="${URL.createObjectURL(thread.image)}">` : ''}
+                            <div class="edit-form" data-thread-index="${index}" data-comment-index="-1">
+                                <input type="text" placeholder="Name" class="edit-name" value="${thread.name}">
+                                <input type="text" placeholder="Message" class="edit-message" value="${thread.message}">
+                                <input type="file" class="edit-image">
+                                <button class="save-edit">Save</button>
+                                <button class="cancel-edit">Cancel</button>
+                            </div>
+                       
+                            <div class="comments">
+                                ${displayComments(thread.comments, index)}
+                            </div>
+                            <form class="create-comment">
+                                <input type="text" placeholder="Name" class="comment-name" required>
+                                <input type="text" placeholder="Message" class="comment-message" required>
+                                <input type="file" class="comment-image">
+                                <button type="submit">Comment</button>
+                            </form>
+                        </div>
+                    `;
+                });
+                document.getElementById('threads').innerHTML = threadsHTML;
+            
+                document.querySelectorAll('.like-button').forEach((button) => {
+                    button.addEventListener('click', (e) => {
+                        let threadIndex = parseInt(button.dataset.threadIndex);
+                        let commentIndex = parseInt(button.dataset.commentIndex);
+                        if(commentIndex === -1) {
+                            if(!threads[threadIndex].likes) threads[threadIndex].likes = 0;
+                            if(!threads[threadIndex].dislikes) threads[threadIndex].dislikes = 0;
+                            if(threads[threadIndex].liked) {
+                                threads[threadIndex].likes--;
+                                threads[threadIndex].liked = false;
+                            } else {
+                                threads[threadIndex].likes++;
+                                threads[threadIndex].liked = true;
+                                if(threads[threadIndex].disliked) {
+                                    threads[threadIndex].dislikes--;
+                                    threads[threadIndex].disliked = false;
+                                }
+                            }
+                        } else {
+                            if(!threads[threadIndex].comments[commentIndex].likes) threads[threadIndex].comments[commentIndex].likes = 0;
+                            if(!threads[threadIndex].comments[commentIndex].dislikes) threads[threadIndex].comments[commentIndex].dislikes = 0;
+                            if(threads[threadIndex].comments[commentIndex].liked) {
+                                threads[threadIndex].comments[commentIndex].likes--;
+                                threads[threadIndex].comments[commentIndex].liked = false;
+                            } else {
+                                threads[threadIndex].comments[commentIndex].likes++;
+                                threads[threadIndex].comments[commentIndex].liked = true;
+                                if(threads[threadIndex].comments[commentIndex].disliked) {
+                                    threads[threadIndex].comments[commentIndex].dislikes--;
+                                    threads[threadIndex].comments[commentIndex].disliked = false;
+                                }
+                            }
+                        }
+                        displayThreads();
+                    });
+                });
+            
+                document.querySelectorAll('.dislike-button').forEach((button) => {
+                    button.addEventListener('click', (e) => {
+                        let threadIndex = parseInt(button.dataset.threadIndex);
+                        let commentIndex = parseInt(button.dataset.commentIndex);
+                        if(commentIndex === -1) {
+                            if(!threads[threadIndex].likes) threads[threadIndex].likes = 0;
+                            if(!threads[threadIndex].dislikes) threads[threadIndex].dislikes = 0;
+                            if(threads[threadIndex].disliked) {
+                                threads[threadIndex].dislikes--;
+                                threads[threadIndex].disliked = false;
+                            } else {
+                                threads[threadIndex].dislikes++;
+                                threads[threadIndex].disliked = true;
+                                if(threads[threadIndex].liked) {
+                                    threads[threadIndex].likes--;
+                                    threads[threadIndex].liked = false;
+                                }
+                            }
+                        } else {
+                            if(!threads[threadIndex].comments[commentIndex].likes) threads[threadIndex].comments[commentIndex].likes = 0;
+                            if(!threads[threadIndex].comments[commentIndex].dislikes) threads[threadIndex].comments[commentIndex].dislikes = 0;
+                            if(threads[threadIndex].comments[commentIndex].disliked) {
+                                threads[threadIndex].comments[commentIndex].dislikes--;
+                                threads[threadIndex].comments[commentIndex].disliked = false;
+                            } else {
+                                threads[threadIndex].comments[commentIndex].dislikes++;
+                                threads[threadIndex].comments[commentIndex].disliked = true;
+                                if(threads[threadIndex].comments[commentIndex].liked) {
+                                    threads[threadIndex].comments[commentIndex].likes--;
+                                    threads[threadIndex].comments[commentIndex].liked = false;
+                                }
+                            }
+                        }
+                        displayThreads();
+                    });
+                });
+                       
+            document.querySelectorAll('.create-comment').forEach((form, index) => {
+                form.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    let name = form.querySelector('.comment-name').value;
+                    let message = form.querySelector('.comment-message').value;
+                    let image = form.querySelector('.comment-image').files[0];
+
+                    createComment(index, name, message, image);
+                    form.querySelector('.comment-name').value = '';
+                    form.querySelector('.comment-message').value = '';
+                    form.querySelector('.comment-image').value = '';
+                });
+            });
+
+            document.querySelectorAll('.image').forEach((image) => {
+                image.addEventListener('click', () => {
+                    image.classList.toggle('large');
+                });
+            });
+            document.querySelectorAll('.edit-icon').forEach((icon) => {
+                icon.addEventListener('click', (e) => {
+                    let threadIndex = parseInt(icon.dataset.threadIndex);
+                    let commentIndex = parseInt(icon.dataset.commentIndex);
+                    let editForm,editIcon;
+                    if(commentIndex === -1) {
+                        editForm = icon.parentNode.parentNode.querySelector('.edit-form');
+                        editIcon = icon.parentNode.parentNode.querySelector('.edit-icon');
+                    } else {
+                        editForm = icon.parentNode.parentNode.querySelector(`.edit-form[data-comment-index="${commentIndex}"]`);
+                        editIcon = icon.parentNode.parentNode.querySelector(`.edit-icon[data-comment-index="${commentIndex}"]`);
+
+                    }
+                    if(editForm.style.display === 'block') {
+                        editForm.style.display = 'none';
+                        editIcon.style.backgroundColor = 'transparent'
+                    }
+                    else{
+                        editForm.style.display = 'block';
+                        editIcon.style.backgroundColor = 'orange'
+                    }
+                });
+            });
+    
+            document.querySelectorAll('.delete-icon').forEach((icon) => {
+                icon.addEventListener('click', (e) => {
+                    let threadIndex = parseInt(icon.dataset.threadIndex);
+                    let commentIndex = parseInt(icon.dataset.commentIndex);
+                    if(commentIndex === -1) {
+                        threads.splice(threadIndex, 1);
+                    } else {
+                        threads[threadIndex].comments.splice(commentIndex, 1);
+                    }
+                    displayThreads();
+                });
+            });
+    
+            document.querySelectorAll('.save-edit').forEach((button) => {
+                button.addEventListener('click', (e) => {
+                    let threadIndex = parseInt(button.parentNode.dataset.threadIndex);
+                    let commentIndex = parseInt(button.parentNode.dataset.commentIndex);
+                    let editName = button.parentNode.querySelector('.edit-name').value;
+                    let editMessage = button.parentNode.querySelector('.edit-message').value;
+                    let editImage = button.parentNode.querySelector('.edit-image').files[0];
+                    if(commentIndex === -1) {
+                        threads[threadIndex].name = editName;
+                        threads[threadIndex].message = editMessage;
+                        threads[threadIndex].image = editImage;
+                    } else { 
+                        threads[threadIndex].comments[commentIndex].name = editName;
+                        threads[threadIndex].comments[commentIndex].message = editMessage;
+                        threads[threadIndex].comments[commentIndex].image = editImage;
+                    }
+                    displayThreads();
+                });
+            });
+            
+            document.querySelectorAll('.cancel-edit').forEach((button) => {
+                button.addEventListener('click', (e) => {
+                    let editForm = button.parentNode;
+                    let editIcon = editForm.parentNode.querySelector('.edit-icon');
+                    editForm.style.display = 'none';
+                    editIcon.style.backgroundColor = 'transparent';
+
+                });
+            });
+        
+
+        document.addEventListener('click', (e) => {
+            if (e.target.tagName === 'A' && e.target.href.includes('#thread-')) {
+                e.preventDefault();
+                let threadIndex = parseInt(e.target.href.split('#thread-')[1].split('-comment-')[0]);
+                let commentId = parseInt(e.target.href.split('-comment-')[1]);
+                let commentElement = document.querySelector(`#thread-${threadIndex}-comment-${commentId}`);
+                if (commentElement) {
+                    document.querySelectorAll('.comment').forEach((c) => c.classList.remove('highlight'));
+                    commentElement.classList.add('highlight');
+                    commentElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+                } else {
+                    console.error(`Comment element with ID ${commentId} not found`);
+                }
+            }
+        });
+    
+    
+    }
+    let r9kMode = false;
+
+        document.getElementById('r9k-mode').addEventListener('change', (e) => {
+            r9kMode = e.target.checked;
+        });
+     
+function createThread(name, message, image) {
+    let thread = {
+        name,
+        message,
+        image,
+        comments: [],
+        nextCommentId: 1,
+        likes: 0,
+        dislikes: 0,
+        liked: false,
+        disliked: false
+    };
+    if(r9kMode){
+        for (let i = 0; i <threads.length; i++){
+            if (threads[i].message === thread.message){
+                alert("This message already exists. Please enter a different message.");
+                return;
+            }
+        }
+    }
+    threads.unshift(thread);
+    displayThreads();
+}
+
+function createComment(index, name, message, image) {
+    let commentId = threads[index].nextCommentId++;
+    let comment = {
+        id: commentId,
+        name,
+        message,
+        image,
+        likes: 0,
+        dislikes: 0,
+        liked: false,
+        disliked: false
+    };
+    if(r9kMode){
+        for (let i = 0; i < threads[index].comments.length; i++){
+            if (threads[index].comments[i].message === comment.message){
+                alert("This message already exists in this thread. Please enter a different message.");
+                return;
+            }
+        }
+    }
+    threads[index].comments.push(comment);
+    displayThreads();
+}
+    
+function displayComments(comments, threadIndex) {
+    let commentsHTML = '';
+    comments.forEach((comment, index) => {
+        commentsHTML += `
+            <div class="comment" id="thread-${threadIndex}-comment-${comment.id}">
+                <span class="comment-id">#${comment.id}</span>
+                <h3>${comment.name}</h3>
+                <p>${comment.message}</p>
+                ${comment.image ? `<img class="image" src="${URL.createObjectURL(comment.image)}">` : ''}
+                <div class="actions">
+                    <i class="edit-icon" data-thread-index="${threadIndex}" data-comment-index="${index}">Edit</i>
+                    <i class="delete-icon" data-thread-index="${threadIndex}" data-comment-index="${index}">Delete</i>
+                </div>
+                <div class="edit-form" data-thread-index="${threadIndex}" data-comment-index="${index}">
+                    <input type="text" placeholder="Name" class="edit-name" value="${comment.name}">
+                    <input type="text" placeholder="Message" class="edit-message" value="${comment.message}">
+                    <input type="file" class="edit-image">
+                    <button class="save-edit">Save</button>
+                    <button class="cancel-edit">Cancel</button>
+                </div>
+                <div class="likes-dislikes">
+                    <button class="like-button ${comment.liked ? 'liked' : ''}" data-thread-index="${threadIndex}" data-comment-index="${index}">Like</button>
+                    <span class="like-count">${comment.likes || 0}</span>
+                    <button class="dislike-button ${comment.disliked ? 'disliked' : ''}" data-thread-index="${threadIndex}" data-comment-index="${index}">Dislike</button>
+                    <span class="dislike-count">${comment.dislikes || 0}</span>
+                </div>
+            </div>
+        `;
+    });
+    return commentsHTML;
+}
+          
+    </script>
+</body>
+</html>
