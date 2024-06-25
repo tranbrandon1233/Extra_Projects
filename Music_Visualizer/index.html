@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Audio Visualizer Overlay with Shifting Colors</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        #videoContainer {
+            position: relative;
+            margin-top: 20px;
+        }
+        #visualizer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Video Audio Visualizer Overlay with Shifting Colors</h1>
+    <input type="file" id="fileInput" accept="video/*">
+    <div id="videoContainer">
+        <video id="video" controls></video>
+        <canvas id="visualizer"></canvas>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('visualizer');
+        const ctx = canvas.getContext('2d');
+
+        let audioContext, analyser, source;
+        let colorOffset = 0;
+
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const fileURL = URL.createObjectURL(file);
+            video.src = fileURL;
+
+            video.onloadedmetadata = function() {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                source = audioContext.createMediaElementSource(video);
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+
+                analyser.fftSize = 256;
+                const bufferLength = analyser.frequencyBinCount;
+                const dataArray = new Uint8Array(bufferLength);
+
+                function draw() {
+                    requestAnimationFrame(draw);
+
+                    analyser.getByteFrequencyData(dataArray);
+
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    const barWidth = (canvas.width / bufferLength) * 2.5;
+                    let x = 0;
+
+                    for (let i = 0; i < bufferLength; i++) {
+                        const barHeight = (dataArray[i] / 255) * canvas.height * 0.5;
+
+                        // Calculate hue based on position and time
+                        const hue = (i / bufferLength * 360 + colorOffset) % 360;
+                        ctx.fillStyle = `hsla(${hue}, 100%, 50%, 0.5)`;
+                        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
+
+                        x += barWidth + 1;
+                    }
+
+                    // Increment color offset for the shifting effect
+                    colorOffset = (colorOffset + 1) % 360;
+                }
+
+                video.play();
+                draw();
+            };
+        });
+    </script>
+</body>
+</html>
