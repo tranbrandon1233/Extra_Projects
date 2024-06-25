@@ -1,0 +1,49 @@
+.app {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f0f0;
+  }
+  
+  .game-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 10px;
+    width: 300px;
+    height: 300px;
+  }
+  
+  .cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  
+  .cell:hover {
+    background-color: #f5f5f5;
+  }
+  
+  .win-screen,
+  .lose-screen {
+    font-size: 48px;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .win-screen {
+    color: #0f0;
+  }
+  
+  .lose-screen {
+    color: #f00;
+  }
+  
+  .waiting-screen {
+    font-size: 36px;
+    color: #666;
+  }
