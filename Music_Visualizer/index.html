@@ -51,15 +51,16 @@
                 canvas.height = video.videoHeight;
 
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
+                analyser = audioContext.createAnalyser(); // Create the analyser here
                 source = audioContext.createMediaElementSource(video);
-                source.connect(analyser);
-                analyser.connect(audioContext.destination);
+
+                source.connect(analyser); // Connect the source to the analyser
+                analyser.connect(audioContext.destination); // Connect the analyser to the output
 
                 analyser.fftSize = 256;
                 const bufferLength = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferLength);
-
+      
                 function draw() {
                     requestAnimationFrame(draw);
 
@@ -71,18 +72,23 @@
                     let x = 0;
 
                     for (let i = 0; i < bufferLength; i++) {
-                        const barHeight = (dataArray[i] / 255) * canvas.height * 0.5;
+                        const barHeight = dataArray[i] / 2;
+                        
+                        // Calculate color based on frequency and offset
+                        const hue = (i / bufferLength * 360) + colorOffset;
+                        const color = `hsl(${hue}, 100%, 50%)`;
 
-                        // Calculate hue based on position and time
-                        const hue = (i / bufferLength * 360 + colorOffset) % 360;
-                        ctx.fillStyle = `hsla(${hue}, 100%, 50%, 0.5)`;
+                        ctx.fillStyle = color;
                         ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
 
-                        x += barWidth + 1;
+                        x += barWidth + 1; 
                     }
 
-                    // Increment color offset for the shifting effect
-                    colorOffset = (colorOffset + 1) % 360;
+                    // Update color offset for shifting effect
+                    colorOffset += 0.5;
+                    if (colorOffset >= 360) {
+                        colorOffset = 0;
+                    }
                 }
 
                 video.play();

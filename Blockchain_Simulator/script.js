@@ -1,4 +1,3 @@
-const elliptic = require('elliptic');
 const crypto = require('crypto');
 
 // Define a Block class
@@ -73,56 +72,27 @@ class Blockchain {
         }
         return balance;
     }
-
-    verifyRingSignature(transaction) {
-        const ec = new elliptic.ec('secp256k1');
-        const pubKeys = transaction.ringMembers.map((member) => ec.keyFromPublic(member, 'hex'));
-        const message = transaction.id;
-        const signature = transaction.signature;
-        const keyImage = transaction.keyImage;
-
-        for (let i = 0; i < pubKeys.length; i++) {
-            const pubKey = pubKeys[i];
-            const verify = ec.verify(message, signature, pubKey);
-            if (verify) {
-                const keyImageVerify = ec.verify(message, keyImage, pubKey);
-                if (keyImageVerify) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
 }
 
 // Define a Transaction class
 class Transaction {
-    constructor(id, fromAddress, toAddress, amount, ringMembers, signature, keyImage) {
+    constructor(id, fromAddress, toAddress, amount) {
         this.id = id;
         this.fromAddress = fromAddress;
         this.toAddress = toAddress;
         this.amount = amount;
-        this.ringMembers = ringMembers;
-        this.signature = signature;
-        this.keyImage = keyImage;
     }
 }
 
 // Define a Peer class
 class Peer {
-    constructor(blockchain, address, privateKey) {
+    constructor(blockchain, address) {
         this.blockchain = blockchain;
         this.address = address;
-        this.privateKey = privateKey;
     }
 
     sendTransaction(toAddress, amount, ringMembers) {
-        const ec = new elliptic.ec('secp256k1');
-        const keyPair = ec.keyFromPrivate(this.privateKey, 'hex');
-        const signature = keyPair.sign(toAddress + amount.toString()).toDER('hex');
-        const keyImage = keyPair.sign(toAddress + amount.toString()).toDER('hex');
-        const transaction = new Transaction(crypto.randomBytes(32).toString('hex'), this.address, toAddress, amount, ringMembers, signature, keyImage);
+        const transaction = new Transaction(crypto.randomBytes(32).toString('hex'), this.address, toAddress, amount);
         this.blockchain.createTransaction(transaction);
     }
 
@@ -137,8 +107,8 @@ class Peer {
 
 // Create a new blockchain and peers
 const blockchain = new Blockchain();
-const peer1 = new Peer(blockchain, "peer1", crypto.randomBytes(32).toString('hex'));
-const peer2 = new Peer(blockchain, "peer2", crypto.randomBytes(32).toString('hex'));
+const peer1 = new Peer(blockchain, "peer1");
+const peer2 = new Peer(blockchain, "peer2");
 
 // Send transactions
 peer1.sendTransaction("peer2", 10, ["peer1", "peer3", "peer4"]);

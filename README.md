@@ -1,2 +1,2 @@
 ﻿# Extra_Projects
-Extraneous projects
+Extraneous projects in JavaScript and Python
