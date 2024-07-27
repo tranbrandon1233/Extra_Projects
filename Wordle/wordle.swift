@@ -55,7 +55,7 @@ func playWordle() {
     // Allow the user to guess up to 5 times
     while guessCount < 5 {
         print("\nEnter your guess (5 letters):")
-        // Get the user's guess, making sure it is a 5-letter word
+        // Get the user's guess, ensuring it is a 5-letter word
         guard let guess = readLine()?.lowercased(), guess.count == 5 else {
             print("Invalid input. Please enter a 5-letter word.")
             continue
