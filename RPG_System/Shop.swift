@@ -34,9 +34,11 @@ class Shop {
     init(items: [Item]) {
         self.items = items
     }
-    
+    // Displays the items available in the shop.
     func displayItems() {
+         // Iterate through the list of items with their indices
         for (index, item) in items.enumerated() {
+            // Print the item's index (1-based), name, and price in gold
             print("\(index + 1). \(item.name) - \(item.price) gold")
         }
     }
@@ -44,6 +46,14 @@ class Shop {
 
 // Purchase Manager class
 class PurchaseManager {
+    /**
+    Purchases an item from the video game shop for the specified player.
+    - Parameters:
+        - item: The `Item` to be purchased.
+        - player: The `Player` who is purchasing the item.
+
+    - Returns: A `Bool` indicating whether the purchase was successful (`true`) or not (`false`).
+    */
     func purchaseItem(_ item: Item, for player: Player) -> Bool {
         // Ensure the player has enough gold for the item
         guard player.gold >= item.price else {
