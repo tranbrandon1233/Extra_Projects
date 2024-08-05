@@ -80,7 +80,7 @@ class FarmSimulator {
         guard row >= 0, row < gridSize, col >= 0, col < gridSize else { return }
         let plot = grid[row][col]
         if plot.isReadyToHarvest {
-            print("Harvesting \(plot.flower) at (\(row),\(col)).")
+            print("Harvested \(plot.flower) at (\(row),\(col)).")
             inventory[plot.flower, default: 0] += 1
             plot.flower = .empty
             plot.plantedTime = nil
