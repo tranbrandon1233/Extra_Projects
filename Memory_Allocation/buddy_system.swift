@@ -58,7 +58,7 @@ class BuddySystem {
      - Parameters:
        - block: The starting address of the block to deallocate.
        - size: The size of the block to deallocate.
-    */
+       */
     func deallocate(block: Int, size: Int) {
         var order = max(Int(ceil(log2(Double(size) / Double(minBlockSize)))), 0)
         var currentBlock = block

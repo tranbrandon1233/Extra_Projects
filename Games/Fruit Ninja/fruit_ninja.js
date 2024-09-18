@@ -1,34 +1,26 @@
-// Get the canvas element
 var canvas = document.getElementById('canvas');
 var ctx = canvas.getContext('2d');
 
-// Set the canvas dimensions to the window dimensions
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Initialize the score and time
 var score = 0;
 var time = 15;
 
-// Create an array to hold the squares
 var squares = [];
 
-// Function to generate a random color (green or red)
 function getRandomColor() {
     return Math.random() < 0.5 ? 'green' : 'red';
 }
 
-// Function to generate a random x position
 function getRandomX() {
     return Math.random() * (canvas.width - 50);
 }
 
-// Function to generate a random y position (at least 20% above the bottom of the window)
 function getRandomY() {
     return Math.random() * (canvas.height * 0.8);
 }
 
-// Function to create a new square
 function createSquare() {
     var square = {
         x: getRandomX(),
@@ -41,7 +33,6 @@ function createSquare() {
     squares.push(square);
 }
 
-// Function to draw the squares
 function drawSquares() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (var i = 0; i < squares.length; i++) {
@@ -124,7 +115,6 @@ function gameLoop() {
     }
 }
 
-// Add event listener for mouse clicks
 canvas.addEventListener('click', handleClick);
 
 // Start the game loop

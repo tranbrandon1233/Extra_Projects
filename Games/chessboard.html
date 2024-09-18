@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        
+        .chessboard {
+            display: grid;
+            grid-template-columns: repeat(9, 40px);
+            grid-template-rows: repeat(10, 40px);
+            gap: 0;
+            border: 2px solid #333;
+        }
+        
+        .square {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+        }
+        
+        .white {
+            background-color: #f0d9b5;
+        }
+        
+        .black {
+            background-color: #b58863;
+        }
+        
+        .label {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+            font-weight: bold;
+        }
+        
+        .corner {
+            background-color: transparent;
+        }
+    </style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chessboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="chessboard">
+        <div class="row">
+            <div class="label corner"></div>
+            <div class="label">a</div>
+            <div class="label">b</div>
+            <div class="label">c</div>
+            <div class="label">d</div>
+            <div class="label">e</div>
+            <div class="label">f</div>
+            <div class="label">g</div>
+            <div class="label">h</div>
+        </div>
+        <div class="row">
+            <div class="label">8</div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+        </div>
+        <div class="row">
+            <div class="label">7</div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white">&#9812;</div> <!-- White King -->
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+        </div>
+        <div class="row">
+            <div class="label">6</div>
+            <div class="square black"></div>
+            <div class="square white">&#9817;</div> <!-- White Pawn -->
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+        </div>
+        <div class="row">
+            <div class="label">5</div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+        </div>
+        <div class="row">
+            <div class="label">4</div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black">&#9813;</div> <!-- White Queen -->
+            <div class="square white"></div>
+        </div>
+        <div class="row">
+            <div class="label">3</div>
+            <div class="square white">&#9823;</div> <!-- Black Pawn -->
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+        </div>
+        <div class="row">
+            <div class="label">2</div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black">&#9821;</div> <!-- Black Bishop -->
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+        </div>
+        <div class="row">
+            <div class="label">1</div>
+            <div class="square white">&#9818;</div> <!-- Black King -->
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black"></div>
+            <div class="square white"></div>
+            <div class="square black">&#9815;</div> <!-- Black Bishop -->
+            <div class="square white"></div>
+            <div class="square black"></div>
+        </div>
+        <div class="row">
+            <div class="label corner"></div>
+            <div class="label">a</div>
+            <div class="label">b</div>
+            <div class="label">c</div>
+            <div class="label">d</div>
+            <div class="label">e</div>
+            <div class="label">f</div>
+            <div class="label">g</div>
+            <div class="label">h</div>
+        </div>
+    </div>
+</body>
+</html>

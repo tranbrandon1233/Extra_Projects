@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { Droppable, Draggable } from 'react-beautiful-dnd';
-import CodeBlock from './CodeBlock';
+import CodeBlock from './Block';
 import { DnDContext } from '../contexts/DnDContext';
 
 const CodeBuilder = () => {

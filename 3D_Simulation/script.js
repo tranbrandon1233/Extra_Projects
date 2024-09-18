@@ -427,4 +427,3 @@ function matchesColor(r, g, b, color) {
 }
 // Add the highlightColor function to the window object
 window.highlightColor = highlightColor;
-

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        :root {
+        --gallery-bg-color: #f0f0f0;
+        --image-border-color: #ddd;
+        --caption-bg-color: rgba(0, 0, 0, 0.7);
+        --caption-text-color: #fff;
+        }
+
+        .gallery-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-gap: 1rem;
+        padding: 1rem;
+        background-color: var(--gallery-bg-color);
+        }
+
+        .gallery-item {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--image-border-color);
+        }
+
+        .gallery-item img {
+        width: 100%;
+        height: auto;
+        display: block;
+        }
+
+        .gallery-item .caption {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 0.5rem;
+        background-color: var(--caption-bg-color);
+        color: var(--caption-text-color);
+        opacity: 0;
+        transform: translateY(100%);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .gallery-item:hover .caption {
+        opacity: 1;
+        transform: translateY(0);
+        }
+    </style>
+    <title>Image Gallery</title>
+    </head>
+    <body>
+      <div class="gallery-container">
+        </div>
+      <div id="loading-indicator">Loading...</div>
+    </body>
+<script>
+        const images = [
+        { src: 'image1.jpg', title: 'Image 1 Title' },
+        { src: 'image2.webp', title: 'Image 2 Title' },
+        { src: 'image3.jpg', title: 'Image 3 Title' },
+        { src: 'image4.jpg', title: 'Image 4 Title' },
+        { src: 'image5.jpg', title: 'Image 5 Title' },
+        { src: 'image1.jpg', title: 'Image 6 Title' },
+        { src: 'image2.webp', title: 'Image 7 Title' },
+        { src: 'image3.jpg', title: 'Image 8 Title' },
+        { src: 'image4.jpg', title: 'Image 9 Title' },
+        { src: 'image5.jpg', title: 'Image 10 Title' },
+        ];
+
+        const galleryContainer = document.querySelector('.gallery-container');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        let loadedImages = 0;
+        
+        const loadMoreImages = () => {
+          for (let i = loadedImages; i < loadedImages + 1 && i < images.length; i++) {
+            const item = document.createElement('div');
+            item.classList.add('gallery-item');
+            item.innerHTML = `
+              <img src="${images[i].src}" alt="${images[i].title}">
+              <div class="caption">${images[i].title}</div>
+            `;
+            galleryContainer.appendChild(item);
+          }
+          loadedImages += 1;
+        
+          if (loadedImages >= images.length) {
+            loadingIndicator.style.display = 'none';
+          }
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+          if (entries[0].isIntersecting) {
+            loadMoreImages();
+          }
+        });
+        
+        observer.observe(loadingIndicator);
+    </script>
+</html>
