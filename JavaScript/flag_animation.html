@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Flag Waving Animation</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Scene, Camera, and Renderer setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Create a plane to simulate the flag
+        const geometry = new THREE.PlaneGeometry(10, 6, 20, 20); // width, height, widthSegments, heightSegments
+        const texture = new THREE.TextureLoader().load('https://upload.wikimedia.org/wikipedia/en/thumb/a/a4/Flag_of_the_United_States.svg/2880px-Flag_of_the_United_States.svg.png');
+        const material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide });
+        const flag = new THREE.Mesh(geometry, material);
+        scene.add(flag);
+
+        // Add lighting for better visual
+        const ambientLight = new THREE.AmbientLight(0x404040, 1); // soft white light
+        scene.add(ambientLight);
+
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(0, 1, 1).normalize();
+        scene.add(directionalLight);
+
+        // Position the camera
+        camera.position.z = 15;
+
+        // Get the plane's position attribute (vertex positions)
+        const positionAttribute = geometry.attributes.position;
+        const vertex = new THREE.Vector3();
+
+        // Animate the flag by modifying vertex positions
+        function animateFlag() {
+            const time = Date.now() * 0.005; // Time factor to animate the wave
+
+            for (let i = 0; i < positionAttribute.count; i++) {
+                vertex.fromBufferAttribute(positionAttribute, i); // Get vertex position
+                const waveX = 0.5 * Math.sin(vertex.x * 1.5 + time); // Wave displacement in X-axis
+                const waveY = 0.25 * Math.sin(vertex.y * 3 + time);  // Wave displacement in Y-axis
+                vertex.z = waveX + waveY; // Update the Z position to create the waving effect
+                positionAttribute.setXYZ(i, vertex.x, vertex.y, vertex.z); // Update the vertex
+            }
+
+            positionAttribute.needsUpdate = true; // Ensure geometry updates
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            animateFlag();
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+        });
+    </script>
+</body>
+</html>
