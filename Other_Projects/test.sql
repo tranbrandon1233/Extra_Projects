@@ -7,7 +7,7 @@ WITH RECURSIVE subordinates AS (
         'root' AS parent_categories, -- Set 'root' as the parent category for the first level
         1 AS depth -- Start depth at 1 for the base case
     FROM
-        `c:/Users/tranb/Documents/test/data.csv` dpf
+        `data.csv` dpf
     WHERE dpf.code_parent IS NULL
     UNION ALL
         SELECT
@@ -18,7 +18,7 @@ WITH RECURSIVE subordinates AS (
             COALESCE(e.parent_categories, 'root') AS parent_categories,
             s.depth + 1 AS depth
         FROM
-            `c:/Users/tranb/Documents/test/data.csv` e
+            `data.csv` e
         JOIN subordinates s ON e.code_parent = s.code
 )
 , max_depth AS (
