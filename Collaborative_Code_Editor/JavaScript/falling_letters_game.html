@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Catcher Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        
+        .game-container {
+            width: 600px;
+            height: 400px;
+            border: 5px solid #333;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .top-section {
+            width: 100%;
+            height: 50px;
+            text-align: center;
+            line-height: 50px;
+            color: #333;
+            background-color: #f0f0f0;
+        }
+        #target-word{
+            font-size: 18px;
+        }
+        
+        .catcher {
+            position: absolute;
+            bottom: 60px;
+            left: 0;
+            height: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .catcher-body {
+            height: 40px;
+            width: 100px;
+            background-color: #333;
+            border-radius: 10px;
+        }
+        
+        .held-letter {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            background-color: #F08080;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            margin-bottom: 5px;
+        }
+        
+        .trash-can {
+            position: absolute;
+            bottom: 60px;
+            right: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+        
+        .letter-boxes {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            height: 60px;
+            background-color: #f0f0f0;
+        }
+        
+        .letter-box {
+            width: 40px;
+            height: 40px;
+            border: 1px solid #333;
+            margin: 2px;
+            line-height: 40px;
+            text-align: center;
+            font-size: 18px;
+            color: #333;
+            cursor: default;
+        }
+        .letter-box.correct {
+            background-color: #58D68D;
+        }
+        .letter-box.wrong {
+            background-color: #F08080;
+        }
+        .falling-letter {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .score-board {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="top-section">
+            <h1 id="target-word"></h1>
+        </div>
+        <div class="catcher">
+            <div class="held-letter" style="display: none;"></div>
+            <div class="catcher-body"></div>
+        </div>
+        <div class="trash-can">
+            <i class="fas fa-trash"></i>
+        </div>
+        <div class="letter-boxes">
+            <!-- Letter boxes will be dynamically generated here using JavaScript -->
+        </div>
+        <div class="score-board">
+            <p>Score: <span id="score">0</span></p>
+        </div>
+    </div>
+    <script>
+        const targetWords = ['JAVASCRIPT', 'HTML', 'CSS', 'GAME', 'CODING'];
+        let currentWord = '';
+        let letterBoxes = [];
+        let fallingLetters = [];
+        let score = 0;
+        let catcherPosition = 0;
+        let heldLetter = null;
+        const catcherSpeed = 10;
+        const gameContainer = document.querySelector('.game-container');
+        const catcher = document.querySelector('.catcher');
+        const heldLetterElement = document.querySelector('.held-letter');
+        const trashCan = document.querySelector('.trash-can');
+        const letterBoxesContainer = document.querySelector('.letter-boxes');
+        const scoreElement = document.getElementById('score');
+
+        function initGame() {
+            currentWord = targetWords[Math.floor(Math.random() * targetWords.length)];
+            document.getElementById('target-word').textContent = currentWord;
+            createLetterBoxes();
+            startFallingLetters();
+            document.addEventListener('keydown', handleKeyPress);
+        }
+
+        function createLetterBoxes() {
+            letterBoxesContainer.innerHTML = '';
+            letterBoxes = [];
+            for (let i = 0; i < currentWord.length; i++) {
+                const box = document.createElement('div');
+                box.classList.add('letter-box');
+                letterBoxesContainer.appendChild(box);
+                letterBoxes.push(box);
+            }
+        }
+
+        function startFallingLetters() {
+            setInterval(() => {
+                const letter = document.createElement('div');
+                letter.classList.add('falling-letter');
+                letter.textContent = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+                letter.style.left = `${Math.random() * (gameContainer.offsetWidth - 20)}px`;
+                letter.style.top = '0px';
+                gameContainer.appendChild(letter);
+                fallingLetters.push(letter);
+            }, 1000);
+
+            setInterval(moveFallingLetters, 50);
+        }
+
+        function moveFallingLetters() {
+            fallingLetters.forEach((letter, index) => {
+                const top = parseInt(letter.style.top);
+                if (top > gameContainer.offsetHeight - 60) {
+                    gameContainer.removeChild(letter);
+                    fallingLetters.splice(index, 1);
+                } else {
+                    letter.style.top = `${top + 2}px`;
+                    checkCollision(letter);
+                }
+            });
+        }
+
+        function checkCollision(letter) {
+            const catcherRect = catcher.getBoundingClientRect();
+            const letterRect = letter.getBoundingClientRect();
+            
+            if (
+                letterRect.bottom >= catcherRect.top &&
+                letterRect.right >= catcherRect.left &&
+                letterRect.left <= catcherRect.right &&
+                !heldLetter
+            ) {
+                gameContainer.removeChild(letter);
+                fallingLetters.splice(fallingLetters.indexOf(letter), 1);
+                handleCaughtLetter(letter.textContent);
+            }
+        }
+
+        function handleCaughtLetter(letter) {
+            const nextEmptyBoxIndex = letterBoxes.findIndex(box => !box.textContent);
+            if (nextEmptyBoxIndex !== -1 && letter === currentWord[nextEmptyBoxIndex]) {
+                letterBoxes[nextEmptyBoxIndex].textContent = letter;
+                letterBoxes[nextEmptyBoxIndex].classList.add('correct');
+                score += 10;
+                scoreElement.textContent = score;
+                if (letterBoxes.every(box => box.textContent)) {
+                    alert('Congratulations! You completed the word!');
+                    initGame();
+                }
+            } else {
+                heldLetter = letter;
+                heldLetterElement.textContent = letter;
+                heldLetterElement.style.display = 'flex';
+                score -= 5;
+                scoreElement.textContent = score;
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'ArrowLeft' && catcherPosition > 0) {
+                catcherPosition -= catcherSpeed;
+            } else if (e.key === 'ArrowRight' && catcherPosition < gameContainer.offsetWidth - catcher.offsetWidth - trashCan.offsetWidth) {
+                catcherPosition += catcherSpeed;
+            } else if (heldLetter) {
+                disposeLetter();
+            }
+            catcher.style.left = `${catcherPosition}px`;
+        }
+
+        function disposeLetter() {
+            const trashCanRect = trashCan.getBoundingClientRect();
+            const catcherRect = catcher.getBoundingClientRect();
+        
+            // Check if the catcher overlaps the trash can horizontally and vertically
+            if (
+                catcherRect.right >= trashCanRect.left &&
+                catcherRect.left <= trashCanRect.right &&
+                catcherRect.bottom >= trashCanRect.top // Ensure vertical collision
+            ) {
+                // If a letter is being held, remove it
+                if (heldLetter) {
+                    heldLetter = null; // Clear the held letter
+                    heldLetterElement.style.display = 'none'; // Hide the held letter element
+                    heldLetterElement.textContent = ''; // Clear the text content
+        
+                    // Optional: Adjust score for discarding
+                    score += 2; // Add points for discarding
+                    scoreElement.textContent = score;
+                }
+            }
+        }              
+
+        initGame();
+    </script>
+</body>
+</html>
