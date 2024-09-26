@@ -1,0 +1,76 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pure JavaScript OOP App</title>
+    <style>
+        /* style.css */
+.heading {
+    text-align: center;
+    color: #444;
+    font-size: 2em;
+  }
+  
+  .btn {
+    padding: 0.8em 1.5em;
+    background-color: #1976d2;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    /* Center the button */
+    display: block;
+    margin: 0 auto;
+}
+    </style>
+</head>
+<body>
+   <div id="root"></div>
+   <script>
+    // main.js
+
+class App {
+    constructor() {
+      this.root = document.getElementById('root');
+      this.createAndAppendUI();
+    }
+  
+    createAndAppendUI() {
+      // Let's create a heading element using OOP principles
+      const heading = new ElementCreator('h1', {
+        textContent: 'Welcome to my app!',
+        className: 'heading'
+      });
+  
+      // Now, let's create a button
+      const button = new ElementCreator('button', {
+        textContent: 'Click me!',
+        className: 'btn',
+        onclick: () => alert('You clicked me!')
+      });
+  
+      // Append the heading and button to the root container
+      this.root.appendChild(heading.element);
+      this.root.appendChild(button.element);
+    }
+  }
+  
+  // Helper class to create new elements with properties
+  class ElementCreator {
+    constructor(tagName, props) {
+      this.element = document.createElement(tagName);
+      this.setProps(props);
+    }
+  
+    setProps(props) {
+      for (const prop in props) {
+        this.element[prop] = props[prop];
+      }
+    }
+  }
+  
+  // Instantiate the App class to start the application
+  new App();
+   </script>
+</body>
+</html>

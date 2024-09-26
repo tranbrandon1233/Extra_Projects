@@ -174,16 +174,40 @@
         }
 
         function startFallingLetters() {
+            const targetWord = document.getElementById('target-word').textContent.toUpperCase();
+            const n = 3; // Adjust this value to change the likelihood of target word letters appearing
+            
+            function getLetterPool() {
+                // Create an array of all uppercase letters
+                const letterPool = [];
+                for (let i = 65; i <= 90; i++) {
+                    letterPool.push(String.fromCharCode(i));
+                }
+                
+                // Add extra n occurrences of target word letters that haven't been caught yet
+                for (let i = 0; i < targetWord.length; i++) {
+                    const char = targetWord[i];
+                    if (char && !letterBoxes[i].textContent) {
+                        for (let j = 0; j < n - 1; j++) {
+                            letterPool.push(char);
+                        }
+                    }
+                }
+                
+                return letterPool;
+            }
+        
             setInterval(() => {
+                const letterPool = getLetterPool();
                 const letter = document.createElement('div');
                 letter.classList.add('falling-letter');
-                letter.textContent = String.fromCharCode(65 + Math.floor(Math.random() * 26));
+                letter.textContent = letterPool[Math.floor(Math.random() * letterPool.length)];
                 letter.style.left = `${Math.random() * (gameContainer.offsetWidth - 20)}px`;
                 letter.style.top = '0px';
                 gameContainer.appendChild(letter);
                 fallingLetters.push(letter);
             }, 1000);
-
+        
             setInterval(moveFallingLetters, 50);
         }
 
