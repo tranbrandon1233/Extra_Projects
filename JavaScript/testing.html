@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date Filter Test</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Date Filter Test</h1>
+    <table id="DataTables_Table_0">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>Item 1</td>
+                <td data-timestamp="1696388400">2023-10-04</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Item 2</td>
+                <td data-timestamp="1696302000">2023-10-03</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>Item 3</td>
+                <td data-timestamp="1696215600">2023-10-02</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>Item 4</td>
+                <td data-timestamp="1696129200">2023-10-01</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>Item 5</td>
+                <td data-timestamp="1696042800">2023-09-30</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <script>
+        // Function to format date as YYYY-MM-DD
+        function formatDate(date) {
+            return date.toISOString().split('T')[0];
+        }
+
+        // Set the current date in the heading
+        const currentDate = new Date();
+        document.querySelector('h1').textContent += ` (Current Date: ${formatDate(currentDate)})`;
+
+        // The provided function
+        for (let tr of document.querySelector("#DataTables_Table_0 > tbody").children){
+            if (0 < (new Date(new Date() - (1000*3600*24))- Number(tr.children[2].attributes[0].value)*1000)) {
+                tr.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>

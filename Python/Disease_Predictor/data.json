@@ -1,0 +1,15 @@
+{
+    "age": 63,
+    "sex": "male",
+    "chest_pain_type": "typical angina",
+    "resting_blood_pressure": 145,
+    "cholesterol": 233,
+    "fasting_blood_sugar": 1,
+    "rest_ecg": "left ventricular hypertrophy",
+    "max_heart_rate": 150,
+    "exercise_induced_angina": 0,
+    "st_depression": 2.3,
+    "st_slope": "upsloping",
+    "num_major_vessels": 0,
+    "thalassemia": "fixed defect"
+  }

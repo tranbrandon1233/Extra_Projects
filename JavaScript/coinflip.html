@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Coin Flip</title>
+<style>
+body {
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background-color: #f0f0f0;
+}
+#coin {
+  width: 150px;
+  height: 150px;
+  position: relative;
+  margin: 50px auto;
+  transform-style: preserve-3d;
+}
+.coin-side {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: absolute;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 36px;
+}
+.heads {
+  background-color: #ffc107;
+}
+.tails {
+  background-color: #b0bec5;
+  transform: rotateY(180deg);
+}
+#flip-button {
+  padding: 15px 30px;
+  font-size: 18px;
+  border: none;
+  background-color: #4caf50;
+  color: white;
+  cursor: pointer;
+  border-radius: 5px;
+}
+.animate-heads {
+  animation: heads 3s linear forwards;
+}
+.animate-tails {
+  animation: tails 3s linear forwards;
+}
+@keyframes heads {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(1800deg); }
+}
+@keyframes tails {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(1980deg); }
+}
+</style>
+</head>
+<body>
+  <div id="coin">
+    <div class="coin-side heads">H</div>
+    <div class="coin-side tails">T</div>
+  </div>
+  <button id="flip-button">Flip Coin</button>
+  <script>
+    const coin = document.getElementById('coin');
+    const button = document.getElementById('flip-button');
+    let isFlipping = false;
+
+    button.addEventListener('click', () => {
+      if (isFlipping) return; // Prevent multiple flips at once
+      isFlipping = true;
+
+      // Remove previous animation classes
+      coin.classList.remove('animate-heads', 'animate-tails');
+
+      // Randomly choose heads or tails
+      const result = Math.random() < 0.5 ? 'heads' : 'tails';
+
+      // Add the appropriate animation class
+      coin.classList.add('animate-' + result);
+
+      // Reset after animation completes
+      setTimeout(() => {
+        isFlipping = false;
+      }, 3000);
+    });
+  </script>
+</body>
+</html>

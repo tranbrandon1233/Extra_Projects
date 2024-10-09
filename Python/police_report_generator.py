@@ -79,67 +79,7 @@ class SovereignCitizenReport:
         """
         self.additional_notes.append(note)
     
-    def generate_excel_report(self, filename="report.xlsx"):
-        """
-        Generates a detailed Excel report of the encounter.
-        """
-        workbook = openpyxl.Workbook()
-        sheet = workbook.active
 
-        # Add report header
-        sheet['A1'] = "Sovereign Citizen Encounter Report"
-        sheet['A2'] = f"Date: {self.date}    Time: {self.time}"
-        sheet['A3'] = f"Officer: {self.officer_name}"
-        sheet['A4'] = f"Location: {self.location}"
-        sheet['A5'] = f"Plate Number: {self.plate_number}"
-        sheet['A6'] = f"Vehicle Description: {self.vehicle_description}"
-        sheet.merge_cells('A1:I1')
-        sheet.merge_cells('A2:I2')
-
-        # Identification Details section
-        sheet['A7'] = "Identification Details"
-        sheet.merge_cells('A7:B7')
-        row = 8
-        for key, value in self.identification_details.items():
-            sheet[f'A{row}'] = key.capitalize()
-            sheet[f'B{row}'] = value
-            row += 1
-
-        # Statements section
-        sheet['A' + str(row)] = "Statements"
-        sheet.merge_cells(f'A{row}:B{row}')
-        row += 1
-        sheet['A' + str(row)] = "Speaker"
-        sheet['B' + str(row)] = "Text"
-        row += 1
-        for statement in self.statements:
-            sheet[f'A{row}'] = statement["speaker"]
-            sheet[f'B{row}'] = statement["text"]
-            row += 1
-
-        # Actions Taken section
-        sheet['A' + str(row)] = "Actions Taken"
-        sheet.merge_cells(f'A{row}:B{row}')
-        row += 1
-        sheet['A' + str(row)] = "Action"
-        sheet['B' + str(row)] = "Description"
-        row += 1
-        for action in self.actions_taken:
-            sheet[f'A{row}'] = action["action"]
-            sheet[f'B{row}'] = action["description"]
-            row += 1
-
-        # Additional Notes section
-        if self.additional_notes:
-            sheet['A' + str(row)] = "Additional Notes"
-            sheet.merge_cells(f'A{row}:B{row}')
-            row += 1
-            for note in self.additional_notes:
-                sheet[f'A{row}'] = note
-                row += 1
-
-        workbook.save(filename)
-        print(f"Report saved as {filename}.")
     
     def generate_text_report(self, filename="report.txt"):
         """
@@ -182,7 +122,7 @@ class SovereignCitizenReport:
 
 
 # Example Usage:
-def main():
+if __name__ == "__main__":
     """
     Demonstrates how to use the SovereignCitizenReport class.
     """
@@ -210,3 +150,7 @@ def main():
     report.add_statement(speaker="officer", text="Informed subject of the requirements for driving a vehicle.")
     report.add_statement(speaker="subject", text="Refused to comply and began reciting legal jargon.")
     report.add_statement(speaker="officer", text="Issued a traffic citation for driving without a valid license")
+    
+    print(report.statements)
+    
+    report.generate_text_report()

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Animation</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+    <script>
+        document.querySelector("#app").innerHTML = `<canvas id="canvas"></canvas>`;
+
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        const pixelSize = 6;
+        const pixelArray = [];
+
+        const initCanvas = () => {
+            [canvas.width, canvas.height] = [window.innerWidth, window.innerHeight];
+            for (let i = 0; i < canvas.width / pixelSize; i++) {
+                pixelArray.push([]);
+                for (let j = 0; j < canvas.height / pixelSize; j++) {
+                    pixelArray[i].push(0);
+                }
+            }
+        };
+
+        const randomPixel = () => Math.round(Math.random());
+
+        const randomPixelArray = () => {
+            for (let i = 0; i < canvas.width / pixelSize; i++) {
+                for (let j = 0; j < canvas.height / pixelSize; j++) {
+                    pixelArray[i][j] = randomPixel();
+                }
+            }
+        };
+
+        const drawPixel = (x, y, color) => {
+            ctx.fillStyle = color;
+            ctx.fillRect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+        };
+
+        const drawImage = () => {
+            const rectSize = pixelSize;
+            let currentColor = null;
+            let rectX = 0;
+            let rectY = 0;
+            let rectWidth = 0;
+          
+            for (let i = 0; i < pixelArray.length; i++) {
+              for (let j = 0; j < pixelArray[i].length; j++) {
+                const color = pixelArray[i][j] ? "#ff7eb6" : "#161616";
+                if (color !== currentColor) {
+                  if (currentColor !== null) {
+                    ctx.fillRect(rectX, rectY, rectWidth, rectSize);
+                  }
+                  currentColor = color;
+                  ctx.fillStyle = currentColor;
+                  rectX = i * pixelSize;
+                  rectY = j * pixelSize;
+                  rectWidth = pixelSize;
+                } else {
+                  rectWidth += pixelSize;
+                }
+              }
+              // Draw the last rectangle on the row
+              if (currentColor !== null) {
+                ctx.fillRect(rectX, rectY, rectWidth, rectSize);
+              }
+              currentColor = null;
+            }
+        };
+
+        const addCircle = (x, y, radius) => {
+            x = Math.round(x / pixelSize);
+            y = Math.round(y / pixelSize);
+            radius = Math.round(radius / pixelSize);
+            for (let i = x - radius; i <= x + radius; i++) {
+                for (let j = y - radius; j <= y + radius; j++) {
+                    if (
+                        i >= 0 &&
+                        i < pixelArray.length &&
+                        j >= 0 &&
+                        j < pixelArray[i].length &&
+                        (i - x) ** 2 + (j - y) ** 2 <= radius ** 2
+                    ) {
+                        pixelArray[i][j] = randomPixel();
+                    }
+                }
+            }
+        };
+
+        let x = Math.round(window.innerWidth / 2);
+        let y = Math.round(window.innerHeight / 2);
+        let dx = pixelSize;
+        let dy = pixelSize;
+        let radius = 100;
+
+        const init = () => {
+            initCanvas();
+            function animate() {
+                addCircle(x, y, radius);
+                x += dx;
+                y += dy;
+
+                if (x + radius >= canvas.width - 1) {
+                    dx = -dx;
+                } else if (x - radius <= 0) {
+                    dx = -dx;
+                }
+
+                if (y + radius >= canvas.height - 1) {
+                    dy = -dy;
+                } else if (y - radius <= 0) {
+                    dy = -dy;
+                }
+
+                drawImage();
+                requestAnimationFrame(animate);
+            }
+            animate();
+        };
+
+        window.onload = init;
+    </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>DOM Manipulation Example</title>
+</head>
+<body>
+  <h1 id="my-heading">Original Heading Text</h1>
+    <script>
+   // Target an existing element by its ID
+const myHeading = document.getElementById('my-heading');
+
+// Change its text content
+myHeading.textContent = 'Hello, world! This text has been changed.';
+
+// Create a new paragraph element
+const newParagraph = document.createElement('p');
+
+// Set its text content
+newParagraph.textContent = 'This is a new paragraph that was created by JavaScript.';
+
+// Append the new paragraph to the existing heading
+myHeading.appendChild(newParagraph);
+
+// Change the style of the heading
+myHeading.style.color = 'red';
+myHeading.style.fontSize = '2em';
+
+// Event listener for a click on the heading
+myHeading.addEventListener('click', function() {
+  alert('You clicked the heading!');
+});
+
+// Example HTML structure (assuming this is present in the same HTML file)
+// <h1 id="my-heading">Original Heading Text</h1>
+
+// This code does the following:
+// 1. Selects the 'h1' element with the ID 'my-heading'.
+// 2. Changes its text to a greeting message.
+// 3. Creates a new paragraph element and sets its text.
+// 4. Adds the new paragraph as a child of the heading.
+// 5. Changes the heading's color to red and font size to 2em.
+// 6. Attaches an event listener to the heading. Clicking it will display an alert.
+    </script>
+</body>
+</html>
