@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Job Portal</title>
+</head>
+<body>
+    <h1>Post a Job</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <ul>
+        {% for category, message in messages %}
+        <li class="{{ category }}">{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        {{ form.title.label }} {{ form.title }}<br>
+        {{ form.category.label }} {{ form.category }}<br>
+        {{ form.description.label }} {{ form.description }}<br>
+        {{ form.skills.label }} {{ form.skills }}<br>
+        {{ form.budget.label }} {{ form.budget }}<br>
+        {{ form.submit }}
+    </form>
+
+    <h2>Open Jobs</h2>
+    <ul>
+        {% for job in jobs %}
+        <li>
+            <a href="{{ url_for('job_details', job_id=loop.index0) }}">{{ job.title }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
