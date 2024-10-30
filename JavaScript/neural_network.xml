@@ -1,0 +1,76 @@
+<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      .node {
+        fill: #f0f0f0;
+        stroke: #000;
+        stroke-width: 1.5;
+      }
+      .edge {
+        stroke: #000;
+        stroke-width: 1.5;
+        marker-end: url(#arrowhead);
+      }
+      .text {
+        font-family: sans-serif;
+        font-size: 12px;
+        text-anchor: middle;
+      }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#000" />
+    </marker>
+  </defs>
+
+  <!-- K Layer -->
+  <rect x="50" y="50" width="100" height="40" class="node" />
+  <text x="100" y="75" class="text">K: Linear(1, 32)</text>
+
+  <!-- Q Layer -->
+  <rect x="50" y="150" width="100" height="40" class="node" />
+  <text x="100" y="175" class="text">Q: Linear(4, 32)</text>
+
+  <!-- V Layer -->
+  <rect x="50" y="250" width="100" height="40" class="node" />
+  <text x="100" y="275" class="text">V: Linear(1, 8)</text>
+
+  <!-- dv_pool Layer -->
+  <rect x="200" y="250" width="100" height="40" class="node" />
+  <text x="250" y="275" class="text">dv_pool: Linear(8, 1)</text>
+
+  <!-- Concatenation -->
+  <ellipse cx="250" y="175" rx="20" ry="10" fill="#fff" stroke="#000" stroke-width="1.5" />
+
+  <!-- Nq_to_obs Layer -->
+  <rect x="300" y="150" width="120" height="40" class="node" />
+  <text x="360" y="175" class="text">Nq_to_obs: Linear(16, 4)</text>
+
+  <!-- DQN Model -->
+  <rect x="450" y="100" width="200" height="150" class="node" rx="10" ry="10" />
+  <text x="550" y="125" class="text">DQN Model</text>
+
+  <!-- DQN Layers -->
+  <rect x="470" y="150" width="160" height="40" class="node" />
+  <text x="550" y="175" class="text">Linear(4, 128)</text>
+
+  <rect x="470" y="190" width="160" height="40" class="node" />
+  <text x="550" y="215" class="text">Linear(128, 128)</text>
+
+  <rect x="470" y="230" width="160" height="40" class="node" />
+  <text x="550" y="255" class="text">Linear(128, 2)</text>
+
+  <!-- Edges -->
+  <line x1="150" y1="70" x2="300" y2="70" class="edge" />
+  <line x1="150" y1="170" x2="230" y2="170" class="edge" />
+  <line x1="150" y1="270" x2="200" y2="270" class="edge" />
+  <line x1="300" y1="270" x2="270" y2="185" class="edge" />
+  <line x1="250" y1="165" x2="300" y2="170" class="edge" />
+  <line x1="420" y1="170" x2="450" y2="170" class="edge" />
+  <line x1="650" y1="170" x2="700" y2="170" class="edge" />
+
+  <!-- Input/Output Labels -->
+  <text x="25" y="75" class="text">State</text>
+  <text x="25" y="175" class="text">Observation</text>
+  <text x="25" y="275" class="text">State</text>
+  <text x="720" y="175" class="text">Action</text>
+</svg>

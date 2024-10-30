@@ -24,70 +24,121 @@ lr = 0.00005
 n_epochs = 100
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# Reusable blocks for repeated layers
+class ResBlock(nn.Module):
+    def __init__(self, channels, num_layers=5):
+        super(ResBlock, self).__init__()
+        layers = []
+        for _ in range(num_layers):
+            layers.extend([
+                nn.Conv2d(channels, channels, 3, 1, 1, bias=False),
+                nn.BatchNorm2d(channels),
+                nn.ReLU(True)
+            ])
+        self.layers = nn.Sequential(*layers)
+        
+    def forward(self, x):
+        return x + self.layers(x)  # Residual connection
+
+class TransitionBlock(nn.Module):
+    def __init__(self, in_channels, out_channels, is_generator=False):
+        super(TransitionBlock, self).__init__()
+        if is_generator:
+            self.transition = nn.Sequential(
+                nn.ConvTranspose2d(in_channels, out_channels, 4, 2, 1, bias=False),
+                nn.BatchNorm2d(out_channels),
+                nn.ReLU(True)
+            )
+        else:
+            self.transition = nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, 4, 2, 1, bias=False),
+                nn.BatchNorm2d(out_channels),
+                nn.LeakyReLU(0.2, inplace=True)
+            )
+            
+    def forward(self, x):
+        return self.transition(x)
+
 # Generator Network
 class Generator(nn.Module):
-    def __init__(self):
+    def __init__(self, layers_per_block=5):
         super(Generator, self).__init__()
-        self.main = nn.Sequential(
-            # Input is latent_dim
+        
+        # Initial block
+        self.initial = nn.Sequential(
             nn.ConvTranspose2d(latent_dim, 512, 4, 1, 0, bias=False),
             nn.BatchNorm2d(512),
-            nn.ReLU(True),
+            nn.ReLU(True)
+        )
+        
+        # Deep residual blocks with transitions
+        self.blocks = nn.ModuleList([
+            # 512 channels block
+            ResBlock(512, layers_per_block),
+            TransitionBlock(512, 256, is_generator=True),
             
-            # State size: 512 x 4 x 4
-            nn.ConvTranspose2d(512, 256, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(True),
+            # 256 channels block
+            ResBlock(256, layers_per_block),
+            TransitionBlock(256, 128, is_generator=True),
             
-            # State size: 256 x 8 x 8
-            nn.ConvTranspose2d(256, 128, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(128),
-            nn.ReLU(True),
+            # 128 channels block
+            ResBlock(128, layers_per_block),
+            TransitionBlock(128, 64, is_generator=True),
             
-            # State size: 128 x 16 x 16
-            nn.ConvTranspose2d(128, 64, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU(True),
-            
-            # State size: 64 x 32 x 32
-            nn.ConvTranspose2d(64, 3, 4, 2, 1, bias=False),  # Changed output channels to 3
+            # 64 channels block
+            ResBlock(64, layers_per_block),
+        ])
+        
+        # Final output layer
+        self.final = nn.Sequential(
+            nn.ConvTranspose2d(64, 3, 4, 2, 1, bias=False),
             nn.Tanh()
-            # Output size: 3 x 64 x 64
         )
 
     def forward(self, x):
-        return self.main(x)
+        x = self.initial(x)
+        for block in self.blocks:
+            x = block(x)
+        return self.final(x)
 
-# Critic Network (Discriminator without sigmoid)
+# Critic Network
 class Critic(nn.Module):
-    def __init__(self):
+    def __init__(self, layers_per_block=5):
         super(Critic, self).__init__()
-        self.main = nn.Sequential(
-            # Input is 3 x 64 x 64  # Changed input channels to 3
+        
+        # Initial block
+        self.initial = nn.Sequential(
             nn.Conv2d(3, 64, 4, 2, 1, bias=False),
-            nn.LeakyReLU(0.2, inplace=True),
-            
-            # State size: 64 x 32 x 32
-            nn.Conv2d(64, 128, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(128),
-            nn.LeakyReLU(0.2, inplace=True),
-            
-            # State size: 128 x 16 x 16
-            nn.Conv2d(128, 256, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.LeakyReLU(0.2, inplace=True),
-            
-            # State size: 256 x 8 x 8
-            nn.Conv2d(256, 512, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(512),
-            nn.LeakyReLU(0.2, inplace=True),
-            
-            # State size: 512 x 4 x 4
-            nn.Conv2d(512, 1, 4, 1, 0, bias=False)
+            nn.LeakyReLU(0.2, inplace=True)
         )
+        
+        # Deep residual blocks with transitions
+        self.blocks = nn.ModuleList([
+            # 64 channels block
+            ResBlock(64, layers_per_block),
+            TransitionBlock(64, 128, is_generator=False),
+            
+            # 128 channels block
+            ResBlock(128, layers_per_block),
+            TransitionBlock(128, 256, is_generator=False),
+            
+            # 256 channels block
+            ResBlock(256, layers_per_block),
+            TransitionBlock(256, 512, is_generator=False),
+            
+            # 512 channels block
+            ResBlock(512, layers_per_block),
+        ])
+        
+        # Final output layer
+        self.final = nn.Conv2d(512, 1, 4, 1, 0, bias=False)
 
     def forward(self, x):
-        return self.main(x).view(-1)
+        x = self.initial(x)
+        for block in self.blocks:
+            x = block(x)
+        return self.final(x).view(-1)
+
 
 # Load CIFAR10 dataset
 transform = transforms.Compose([
@@ -100,15 +151,15 @@ dataset = datasets.CIFAR10(root='./data', train=True, download=True, transform=t
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=2)
 
 # Initialize networks and optimizers
-generator = Generator().to(device)
-critic = Critic().to(device)
+generator = Generator(num_layers=10).to(device)
+critic = Critic(num_layers=10).to(device)
 
 if 'g_model.pth' in os.listdir('/content/drive/MyDrive/WGAN'):
-    generator.load_state_dict(torch.load('g_model.pth', weights_only=True))
+    generator.load_state_dict(torch.load('/content/drive/MyDrive/WGAN/g_model.pth', weights_only=True))
     generator.eval()
 
 if 'c_model.pth' in os.listdir('/content/drive/MyDrive/WGAN'):
-    critic.load_state_dict(torch.load('c_model.pth', weights_only=True))
+    critic.load_state_dict(torch.load('/content/drive/MyDrive/WGAN/c_model.pth', weights_only=True))
     critic.eval()
 g_optimizer = optim.RMSprop(generator.parameters(), lr=lr)
 c_optimizer = optim.RMSprop(critic.parameters(), lr=lr)
@@ -135,15 +186,15 @@ for epoch in range(n_epochs):
     for batch_idx, (real_imgs, _) in enumerate(dataloader):
         real_imgs = real_imgs.to(device)
         batch_size = real_imgs.size(0)
-        
+
         # Train Critic
         for _ in range(n_critic):
           c_optimizer.zero_grad()
-            
+
           # Generate fake images
           z = torch.randn(batch_size, latent_dim, 1, 1, device=device)
           fake_imgs = generator(z)
-            
+
           # Calculate critic loss
           critic_real = critic(real_imgs).mean()
           critic_fake = critic(fake_imgs.detach()).mean()
@@ -156,24 +207,24 @@ for epoch in range(n_epochs):
           #      saved_gradients.append(param.grad.clone())
           # print(saved_gradients)
           c_optimizer.step()
-            
+
           # Clip critic weights
           for p in critic.parameters():
               p.data.clamp_(-clip_value, clip_value)
-        
+
         # Train Generator
         g_optimizer.zero_grad()
-        
+
         # Generate fake images
         z = torch.randn(batch_size, latent_dim, 1, 1, device=device)
         fake_imgs = generator(z)
-        
+
         # Calculate generator loss
         g_loss = -critic(fake_imgs).mean()
-        
+
         g_loss.backward()
         g_optimizer.step()
-        
+
         # Display progress
         if batch_idx % 100 == 0:
             print(f"Epoch [{epoch}/{n_epochs}] Batch [{batch_idx}/{len(dataloader)}] "
