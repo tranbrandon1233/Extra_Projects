@@ -1,0 +1,15 @@
+Date,Category,Quantity,Employee,Total
+2023-01-01,Fruits,50,Alice,150.75
+2023-01-01,Vegetables,30,Bob,75.50
+2023-01-01,Dairy,20,Charlie,100.20
+2023-01-02,Fruits,40,Alice,120.60
+2023-01-02,Vegetables,25,Bob,62.75
+2023-01-02,Meat,10,David,200.00
+2023-01-03,Fruits,35,Alice,105.50
+2023-01-03,Vegetables,20,Bob,50.40
+2023-01-03,Dairy,15,Charlie,75.60
+2023-01-03,Meat,12,David,240.00
+2023-01-04,Fruits,55,Alice,165.80
+2023-01-04,Vegetables,28,Bob,70.00
+2023-01-04,Dairy,22,Charlie,110.00
+2023-01-04,Meat,15,David,300.00

@@ -6,6 +6,11 @@ import socket
 import threading
 import json
 from pathlib import Path
+import sys
+import signal
+
+MULTICAST_GROUP = '224.0.0.1'
+MULTICAST_PORT = 5007
 
 # Class to manage banned IP addresses by loading, adding, and checking banned IPs
 class BanList:
@@ -31,64 +36,41 @@ class BanList:
     def is_banned(self, ip):
         return ip in self.banned_ips
     
-# Class to store and retrieve IPs that were displayed in a recent search
-class LastDisplayedIPs:
-    def __init__(self):
-        self.store_file = Path('last_displayed_ips.json')
-    
-    # Save a list of IPs to a file with a timestamp
-    def save_ips(self, ip_list):
-        with open(self.store_file, 'w') as f:
-            json.dump({'ips': ip_list, 'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')}, f)
-    
-    # Retrieve list of last displayed IPs
-    def get_ips(self):
-        if not self.store_file.exists():
-            return []
-        try:
-            with open(self.store_file, 'r') as f:
-                data = json.load(f)
-                return data['ips']
-        except:
-            return []
-
-# Class to manage the storage and retrieval of messages sent between IPs
 class MessageStore:
     def __init__(self):
         self.store_file = Path('message_history.json')
         self.messages = self._load_messages()
+        self._lock = threading.Lock()
     
-    # Load messages from the file if it exists
     def _load_messages(self):
         if self.store_file.exists():
             with open(self.store_file, 'r') as f:
                 return json.load(f)
         return {}
     
-    # Save a message with IP address, content, and timestamp to message history
     def save_message(self, ip_address, message, timestamp=None):
-        if timestamp is None:
-            timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        
-        if ip_address not in self.messages:
-            self.messages[ip_address] = []
-        
-        self.messages[ip_address].append({
-            'message': message,
-            'timestamp': timestamp,
-            'status': 'sent'  # status for tracking
-        })
-        
-        with open(self.store_file, 'w') as f:
-            json.dump(self.messages, f, indent=2)
+        with self._lock:
+            if timestamp is None:
+                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            
+            if ip_address not in self.messages:
+                self.messages[ip_address] = []
+            
+            self.messages[ip_address].append({
+                'message': message,
+                'timestamp': timestamp,
+                'status': 'sent'
+            })
+            
+            with open(self.store_file, 'w') as f:
+                json.dump(self.messages, f, indent=2)
     
-    # Retrieve all messages, or messages from a specific IP if given
     def get_messages(self, ip_address=None):
-        if ip_address:
-            return self.messages.get(ip_address, [])
-        return self.messages
+        with self._lock:
+            if ip_address:
+                return self.messages.get(ip_address, [])
+            return self.messages
 
-# Client class to establish a connection, send/receive messages, and handle interaction with the server
 class Client:
     def __init__(self, ip_address):
         self.ip_address = ip_address
@@ -96,7 +78,6 @@ class Client:
         self.message_store = MessageStore()
         self.running = False
         
-    # Connect to server and start message receiving thread
     def connect(self):
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -104,16 +85,14 @@ class Client:
             self.sock.connect(('localhost', 8080))
             self.running = True
             
-            # Start a thread to receive messages
             self.receive_thread = threading.Thread(target=self.receive_messages)
-            self.receive_thread.daemon = True  # Thread will close when main program exits
+            self.receive_thread.daemon = True
             self.receive_thread.start()
             return True
         except Exception as e:
             print(f"Connection error: {str(e)}")
             return False
 
-    # Continuously listen for incoming messages from the server
     def receive_messages(self):
         while self.running and self.sock:
             try:
@@ -122,22 +101,20 @@ class Client:
                     print("Sorry, you have been banned")
                     self.running = False
                     break
-                
                 if not data:
                     break
                     
                 payload = json.loads(data)
                 print(f"\nMessage from {payload['sender']}: {payload['message']}")
-                print("Enter message (or 'quit' to exit): ", end='', flush=True)
+                print("Enter messages in format '[IP]: [message]' (or 'quit' to exit)", end='', flush=True)
             except socket.timeout:
                 continue
             except Exception as e:
-                if self.running:  # Only print error if not intentionally stopped
+                if self.running:
                     print(f"Error receiving message: {str(e)}")
                 break
         self.close()
 
-    # Send a message to the server and handle response
     def send_message(self, message):
         if not self.sock or not self.running:
             print("Not connected to server")
@@ -150,7 +127,6 @@ class Client:
             })
             self.sock.sendall(payload.encode())
             response = self.sock.recv(1024).decode()
-            
             if response == "BANNED":
                 print("Sorry, you have been banned")
                 self.running = False
@@ -163,7 +139,6 @@ class Client:
             return False
         return False
 
-    # Close the client connection
     def close(self):
         self.running = False
         if self.sock:
@@ -174,7 +149,6 @@ class Client:
             self.sock = None
 
     def start_interactive(self):
-        """Start an interactive message session"""
         if not self.connect():
             return
 
@@ -183,55 +157,92 @@ class Client:
             while self.running:
                 msg = input("Enter message: ")
                 if msg.lower() == 'quit':
-                    self.close()
-                    print("Exiting server...")
                     break
                 if not self.send_message(msg):
                     break
         finally:
             self.close()
-        
-        
+
 # Server class to manage clients, broadcast messages, and process banning
 class Server:
     def __init__(self):
+        self.sock = None
+        self.message_store = MessageStore()
+        self.clients = {}
+        self.running = False
+        self._lock = threading.Lock()
+        self.ban_list = BanList()
+        signal.signal(signal.SIGINT, self.signal_handler)
+        self.bind_socket()
+
+    def bind_socket(self):
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         PORT = 8080
         while True:
             try:
                 self.sock.bind(('localhost', PORT))
                 break
-            except:
-                PORT = PORT + 1
+            except OSError:
+                PORT += 1
         self.sock.listen()
-        self.message_store = MessageStore()
-        self.ban_list = BanList()
-        self.clients = {}  # Store active client connections
-        print("Server started on localhost:8080")
+        print(f"Server started on localhost:{PORT}")
 
-    # Start the server, handle client connections, and manage messaging
-    def start(self):
-        # Start a thread to handle user input for all connected clients
-        threading.Thread(target=self.handle_user_input).start()
+    def signal_handler(self, signum, frame):
+        print("\nShutting down server...")
+        self.stop()
+        sys.exit(0)
+
+    def stop(self):
+        self.running = False
+        # Close all client connections
+        with self._lock:
+            for conn in self.clients.values():
+                try:
+                    conn.close()
+                except:
+                    pass
+            self.clients.clear()
         
-        while True:
+        # Close server socket
+        if self.sock:
             try:
-                conn, addr = self.sock.accept()
-                threading.Thread(target=self.handle_client, args=(conn, addr[0])).start()
-            except Exception as e:
-                print(f"Error accepting connection: {str(e)}")
+                self.sock.close()
+            except:
+                pass
 
-    # Handle user input on the server for sending messages to clients
+    def start(self):
+        self.running = True
+        input_thread = threading.Thread(target=self.handle_user_input)
+        input_thread.daemon = True
+        input_thread.start()
+        
+        try:
+            while self.running:
+                try:
+                    self.sock.settimeout(1.0)  # Allow checking self.running periodically
+                    conn, addr = self.sock.accept()
+                    client_thread = threading.Thread(target=self.handle_client, args=(conn, addr[0]))
+                    client_thread.daemon = True
+                    client_thread.start()
+                except socket.timeout:
+                    continue
+                except Exception as e:
+                    if self.running:  # Only print error if not intentionally stopped
+                        print(f"Error accepting connection: {str(e)}")
+        finally:
+            self.stop()
+
     def handle_user_input(self):
         print("Enter messages in format '[IP]: [message]' (or 'quit' to exit)")
-        while True:
+        while self.running:
             try:
                 user_input = input()
                 if user_input.lower() == 'quit':
-                    print("Exiting server...")
+                    self.running = False
+                    print("Shutting down server...")
                     break
                 
-                # Parse IP and message
                 try:
                     ip, message = user_input.split(':', 1)
                     ip = ip.strip()
@@ -240,62 +251,72 @@ class Server:
                     if self.ban_list.is_banned(ip):
                         print(f"Sorry, {ip} has been banned")
                         continue
-                        
-                    # Store and broadcast message
+                    
                     self.message_store.save_message(ip, message)
                     self.broadcast_message(ip, message)
                 except ValueError:
                     print("Invalid format. Use '[IP]: [message]'")
+            except EOFError:
+                break
             except Exception as e:
                 print(f"Error processing input: {str(e)}")
 
-    # Broadcast message from one client to all other connected clients
     def broadcast_message(self, sender_ip, message):
-        # Send message to all connected clients except the sender
-        for ip, conn in self.clients.items():
-            if ip != sender_ip and not self.ban_list.is_banned(ip):
-                try:
-                    payload = json.dumps({
-                        'sender': sender_ip,
-                        'message': message
-                    })
-                    conn.sendall(payload.encode())
-                except:
-                    # Remove dead connections
-                    del self.clients[ip]
+        with self._lock:
+            dead_clients = []
+            for ip, conn in self.clients.items():
+                if ip != sender_ip and not self.ban_list.is_banned(ip):
+                    try:
+                        payload = json.dumps({
+                            'sender': sender_ip,
+                            'message': message
+                        })
+                        conn.sendall(payload.encode())
+                    except:
+                        dead_clients.append(ip)
+            
+            # Remove dead connections
+            for ip in dead_clients:
+                del self.clients[ip]
 
-    # Handle incoming messages from a client and manage their connection
     def handle_client(self, conn, client_ip):
         try:
             if self.ban_list.is_banned(client_ip):
                 conn.sendall("BANNED".encode())
                 return
-                
-            self.clients[client_ip] = conn
+            with self._lock:
+                self.clients[client_ip] = conn
             
-            while True:
-                data = conn.recv(1024).decode()
-                if not data:
+            while self.running:
+                try:
+                    conn.settimeout(1.0)  # Allow checking self.running periodically
+                    data = conn.recv(1024).decode()
+                    if not data:
+                        break
+                        
+                    payload = json.loads(data)
+                    sender_ip = payload.get('sender_ip', client_ip)
+                    message = payload['message']
+                    
+                    if not self.ban_list.is_banned(sender_ip):
+                        print(f"Message from {sender_ip}: {message}")
+                        self.message_store.save_message(sender_ip, message)
+                        self.broadcast_message(sender_ip, message)
+                        conn.sendall("ACK".encode())
+                    else:
+                        conn.sendall("BANNED".encode())
+                        continue
+                except Exception as e:
+                    if self.running:  # Only print error if not intentionally stopped
+                        print(f"Error handling client {client_ip}: {str(e)}")
                     break
-                    
-                payload = json.loads(data)
-                sender_ip = payload.get('sender_ip', client_ip)
-                message = payload['message']
-                
-                if not self.ban_list.is_banned(sender_ip):
-                    print(f"Message from {sender_ip}: {message}")
-                    self.message_store.save_message(sender_ip, message)
-                    self.broadcast_message(sender_ip, message)
-                    conn.sendall("ACK".encode())
-                else:
-                    conn.sendall("BANNED".encode())
-                    
-        except Exception as e:
-            print(f"Error handling client {client_ip}: {str(e)}")
         finally:
-            if client_ip in self.clients:
-                del self.clients[client_ip]
+            with self._lock:
+                if client_ip in self.clients:
+                    del self.clients[client_ip]
             conn.close()
+            
+            
 # Parse arguments sent from the command line   
 def parse_args():
     parser = argparse.ArgumentParser(description='Parse log file and find the most active IP addresses')
@@ -304,7 +325,6 @@ def parse_args():
     parser.add_argument('-m', '--month', help='Specific month in "MM" format')
     parser.add_argument('-y', '--year', help='Specific year in "YYYY" format')
     parser.add_argument('-s', '--show', action='store_true', help='Show the most frequently visited webpages for each IP address')
-    parser.add_argument('-c', '--contact', help='Send a message to the IP addresses that were most recently listed')
     parser.add_argument('-b', '--ban', help='Ban an IP address')
     parser.add_argument('-f', '--file', default='logs.txt', help='Specify the log file (default: logs.txt)')
     parser.add_argument('--server', action='store_true', help='Run as server')
@@ -373,7 +393,6 @@ def view_messages(ip_address=None):
 # Main function to parse arguments and run the IP address counter
 def main():
     args = parse_args()
-    ip_store = LastDisplayedIPs()
     ban_list = BanList()
     
     if args.ban:
@@ -395,10 +414,7 @@ def main():
         try:
             ip_addresses, webpage_visits = parse_log_file(log_file, args.date, args.month, args.year)
             most_active_ip_addresses = find_most_active_ip_addresses(ip_addresses, args.n)
-            
-            # Store the displayed IPs
-            ip_store.save_ips([ip for ip, _ in most_active_ip_addresses])
-            
+                        
             if args.show:
                 most_frequent_webpages = find_most_frequent_webpages(webpage_visits)
                 for ip_address, count in most_active_ip_addresses:
@@ -411,52 +427,7 @@ def main():
             print(f"Error: Log file '{log_file}' not found")
             return
     
-    if args.contact:
-        target_ips = ip_store.get_ips()
-        
-        if not target_ips:
-            print("No IP addresses have been displayed yet. Run a search first.")
-            return
-            
-        print(f"Sending message to previously displayed IPs: {', '.join(target_ips)}")
-        
-        # First send initial message to all IPs
-        for ip_address in target_ips:
-            if ban_list.is_banned(ip_address):
-                print(f"Skipping banned IP: {ip_address}")
-                continue
-            client = Client(ip_address)
-            if client.connect():
-                if client.send_message(args.contact):
-                    print(f"Initial message sent to {ip_address}")
-                client.close()
 
-        # Then start interactive session for one IP
-        print("\nWhich IP would you like to continue chatting as? Available IPs:")
-        for idx, ip in enumerate(target_ips, 1):
-            if not ban_list.is_banned(ip):
-                print(f"{idx}. {ip}")
-        
-        while True:
-            try:
-                choice = input("\nEnter number (or 'quit' to exit): ")
-                if choice.lower() == 'quit':
-                    print("Exiting server...")
-                    client.close()
-                    break
-                idx = int(choice) - 1
-                if 0 <= idx < len(target_ips):
-                    chosen_ip = target_ips[idx]
-                    if ban_list.is_banned(chosen_ip):
-                        print("That IP is banned. Please choose another.")
-                        continue
-                    client = Client(chosen_ip)
-                    client.start_interactive()
-                    break
-                else:
-                    print("Invalid choice. Please try again.")
-            except ValueError:
-                print("Please enter a valid number.")
 
 if __name__ == '__main__':
     main()
