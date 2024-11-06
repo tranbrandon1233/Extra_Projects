@@ -1,4 +1,4 @@
-// First install dotenv:
+// First install the dependencies by running the following command in the terminal:
 // npm install dotenv express nodemailer bcrypt path
 
 require('dotenv').config();
@@ -14,7 +14,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 // Add request logging middleware for debugging
-app.use((req, res, next) => {
+app.use((req, _, next) => {
   console.log(`${req.method} ${req.path}`, req.body);
   next();
 });
@@ -22,8 +22,8 @@ app.use((req, res, next) => {
 // Create a .env file in your project root with these variables:
 // GMAIL_USER=your-email@gmail.com
 // GMAIL_APP_PASSWORD=your-16-character-app-password
-// Email configuration
 
+// Email configuration
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -33,7 +33,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Test the email configuration
-transporter.verify((error, success) => {
+transporter.verify((error, _) => {
   if (error) {
     console.error('Email configuration error:', error);
   } else {
@@ -89,7 +89,7 @@ app.post('/api/register', async (req, res) => {
           <p>This code will expire in 1 hour.</p>
         `
       });
-
+      // Send success response
       res.json({ message: 'Registration successful. Please check your email for verification code.' });
     } catch (emailError) {
       // If email fails, clean up the created user
@@ -98,7 +98,7 @@ app.post('/api/register', async (req, res) => {
       console.error('Email sending error:', emailError);
       res.status(500).json({ error: 'Failed to send verification email. Please try again later.' });
     }
-
+    // Send error response
   } catch (error) {
     console.error('Registration error:', error);
     res.status(500).json({ error: 'Server error. Please try again later.' });
@@ -173,19 +173,22 @@ app.post('/api/register', async (req, res) => {
 // Verify account endpoint
 app.post('/api/verify', (req, res) => {
   const { email, code } = req.body;
-
+  // Get user and verification data
   const storedVerification = verificationCodes.get(email);
   const user = users.get(email);
 
+  // Check if the user exists
   if (!storedVerification || !user) {
     return res.status(400).json({ error: 'Invalid email' });
   }
 
+  // Check if the verification code is valid
   if (storedVerification.expiresAt < Date.now()) {
     verificationCodes.delete(email);
     return res.status(400).json({ error: 'Verification code expired' });
   }
 
+  // Check if the verification code is correct
   if (storedVerification.code !== code) {
     return res.status(400).json({ error: 'Invalid verification code' });
   }
@@ -203,14 +206,16 @@ app.post('/api/login', async (req, res) => {
   const { email, password } = req.body;
   const user = users.get(email);
 
+  // Check if the user exists
   if (!user) {
     return res.status(400).json({ error: 'User not found' });
   }
 
+  // Check if the account is verified
   if (!user.verified) {
     return res.status(400).json({ error: 'Account not verified' });
   }
-
+  // Check if the password is valid
   const validPassword = await bcrypt.compare(password, user.password);
   if (!validPassword) {
     return res.status(400).json({ error: 'Invalid password' });
@@ -522,10 +527,12 @@ frontendCode = `<!DOCTYPE html>
 const fs = require('fs');
 const publicDir = path.join(__dirname, 'public');
 
+// Create the public directory if it doesn't exist
 if (!fs.existsSync(publicDir)) {
     fs.mkdirSync(publicDir);
 }
 
+// Write the HTML file
 fs.writeFileSync(path.join(publicDir, 'index.html'), frontendCode);
 
 // Start the server
