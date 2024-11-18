@@ -3,6 +3,7 @@ package.json
 package-lock.json
 tsconfig.json
 serviceKey.json
+CMakeCache.txt
 .venv
 .env
 env
