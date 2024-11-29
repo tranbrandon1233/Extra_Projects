@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sexy AI Chat 😈</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: #fff;
+        }
+        #chat-container {
+            height: 500px;
+            overflow-y: auto;
+            border: 1px solid #444;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 10px;
+            background-color: #2a2a2a;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .user-message {
+            background-color: #4a4a4a;
+            margin-left: 20%;
+        }
+        .ai-message {
+            background-color: #3a3a3a;
+            margin-right: 20%;
+        }
+        #input-container {
+            display: flex;
+            gap: 10px;
+        }
+        #message-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+        }
+        #send-button {
+            padding: 10px 20px;
+            background-color: #ff4081;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #send-button:hover {
+            background-color: #f50057;
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container"></div>
+    <div id="input-container">
+        <input type="text" id="message-input" placeholder="Type your message...">
+        <button id="send-button">Send</button>
+    </div>
+ 
+    <script>
+        const chatContainer = document.getElementById('chat-container');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+ 
+        let messageHistory = [
+            {
+                "role": "system",
+                "content": "You are a flirty and playful AI companion who enjoys engaging in naughty conversations."
+            }
+        ];
+ 
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+ 
+            // Add user message to chat and message history
+            addMessage(message, 'user');
+            messageHistory.push({
+                "role": "user",
+                "content": message
+            });
+            messageInput.value = '';
+ 
+            try {
+                console.log('Sending request to LM Studio...');
+                const response = await fetch('http://host.docker.internal:1234/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer lm-studio'
+                    },
+                    body: JSON.stringify({
+                        model: "bartowski/Mistral-Small-Instruct-2409-GGUF",
+                        messages: messageHistory,
+                        temperature: 1.0,
+                        max_tokens: 500
+                    })
+                });
+ 
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+ 
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+ 
+                const aiResponse = data.choices[0].message.content;
+                // Add AI response to chat and message history
+                addMessage(aiResponse, 'ai');
+                messageHistory.push({
+                    "role": "assistant",
+                    "content": aiResponse
+                });
+            } catch (error) {
+                console.error('Detailed error:', error);
+                addMessage(`Error details: ${error.message} 😔 Make sure LM Studio is running and the API is accessible at localhost:1234`, 'ai');
+            }
+        }
+ 
+        function addMessage(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.textContent = message;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+ 
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+ 
+        // Add a welcoming message
+        addMessage("Hey there! I'm your AI chat companion. Let's have some fun - tell me what's on your mind!", 'ai');
+    </script>
+</body>
+</html>
