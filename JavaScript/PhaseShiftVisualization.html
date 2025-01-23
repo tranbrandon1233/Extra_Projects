@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            font-family: Arial, sans-serif;
+        }
+        .canvas-wrapper {
+            margin: 20px 0;
+        }
+        button {
+            margin: 5px;
+            padding: 8px 16px;
+            cursor: pointer;
+        }
+        #phase-display {
+            margin: 10px 0;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Wave Interference with Phase Shifts</h2>
+        <div id="phase-display">Current Phase: 0</div>
+        <div class="canvas-wrapper">
+            <canvas id="waveCanvas" width="800" height="400"></canvas>
+        </div>
+        <div>
+            <button onclick="updatePhase(0)">φ = 0</button>
+            <button onclick="updatePhase(Math.PI/2)">φ = π/2</button>
+            <button onclick="updatePhase(Math.PI)">φ = π</button>
+            <button onclick="updatePhase(3*Math.PI/2)">φ = 3π/2</button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('waveCanvas');
+        const ctx = canvas.getContext('2d');
+        let currentPhase = 0;
+
+        function drawWaves(phase) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Set up scaling
+            const xScale = canvas.width / 2; // Scale x from 0 to 2
+            const yScale = 100; // Scale for amplitude
+            const yOffset = canvas.height / 2;
+            
+            // Draw axes
+            ctx.beginPath();
+            ctx.strokeStyle = '#999';
+            ctx.moveTo(0, yOffset);
+            ctx.lineTo(canvas.width, yOffset);
+            ctx.stroke();
+
+            // Plot waves
+            ctx.beginPath();
+            ctx.strokeStyle = 'blue';
+            ctx.lineWidth = 2;
+
+            for(let x = 0; x < canvas.width; x++) {
+                const xVal = x / xScale;
+                // First wave
+                const wave1 = Math.sin(2 * Math.PI * xVal + phase);
+                // Second wave
+                const wave2 = Math.sin(2 * Math.PI * xVal);
+                // Combined wave (absolute value as per microphone behavior)
+                const combined = Math.abs(wave1 + wave2);
+                
+                if(x === 0) {
+                    ctx.moveTo(x, yOffset - combined * yScale);
+                } else {
+                    ctx.lineTo(x, yOffset - combined * yScale);
+                }
+            }
+            ctx.stroke();
+        }
+
+        function updatePhase(phase) {
+            currentPhase = phase;
+            document.getElementById('phase-display').textContent = 
+                `Current Phase: ${phase.toFixed(2)} radians`;
+            drawWaves(phase);
+        }
+
+        // Initial draw
+        updatePhase(0);
+    </script>
+</body>
+</html>
