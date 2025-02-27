@@ -49,3 +49,68 @@ class TaskManager:
             return order
         else:
             return []
+        
+def test_valid_order():
+    taskA = BaseTask("A")
+    taskB = BaseTask("B")
+    taskC = BaseTask("C")
+    taskD = BaseTask("D")
+
+    taskB.prerequisites = [taskA]
+    taskC.prerequisites = [taskA]
+    taskD.prerequisites = [taskB, taskC]
+
+    tasks = [taskA, taskB, taskC, taskD]
+    manager = TaskManager(tasks)
+    order = manager.find_task_order()
+
+    assert order in [["A", "B", "C", "D"], ["A", "C", "B", "D"]]
+
+def test_no_prerequisites():
+    tasks = [BaseTask("X"), BaseTask("Y"), BaseTask("Z")]
+    manager = TaskManager(tasks)
+    order = manager.find_task_order()
+    assert set(order) == {"X", "Y", "Z"}
+
+def test_single_task():
+    tasks = [BaseTask("Single")]
+    manager = TaskManager(tasks)
+    order = manager.find_task_order()
+    assert order == ["Single"]
+
+def test_cycle_detection():
+    task1 = BaseTask("1")
+    task2 = BaseTask("2")
+    task3 = BaseTask("3")
+
+    task1.prerequisites = [task3]
+    task2.prerequisites = [task1]
+    task3.prerequisites = [task2]
+
+    tasks = [task1, task2, task3]
+    manager = TaskManager(tasks)
+    order = manager.find_task_order()
+
+    assert order == []
+
+def test_advanced_tasks():
+    adv_task1 = AdvancedTask("X", difficulty=3)
+    adv_task2 = AdvancedTask("Y", difficulty=2)
+    adv_task3 = AdvancedTask("Z", difficulty=1)
+
+    adv_task2.prerequisites = [adv_task1]
+    adv_task3.prerequisites = [adv_task2]
+
+    tasks = [adv_task1, adv_task2, adv_task3]
+    manager = TaskManager(tasks)
+    order = manager.find_task_order()
+
+    assert order == ["X", "Y", "Z"]
+
+if __name__ == "__main__":
+    test_valid_order()
+    test_no_prerequisites()
+    test_single_task()
+    test_cycle_detection()
+    test_advanced_tasks()
+    print("All tests passed!")
